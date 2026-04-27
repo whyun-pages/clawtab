@@ -1,61 +1,46 @@
 import type { ChatMessage, OpenClawConfig } from "../shared/types";
+import { generateText } from "ai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
-interface OpenAIMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
-}
-
-interface OpenAIChatResponse {
-  choices?: Array<{
-    message?: {
-      content?: string | Array<{ type?: string; text?: string }>;
-    };
-  }>;
-  error?: {
-    message?: string;
-  };
+function createOpenClawProvider(config: OpenClawConfig) {
+  return createOpenAICompatible({
+    name: "openclaw",
+    apiKey: config.token,
+    baseURL: config.baseUrl,
+    headers: {
+      "x-openclaw-agent-id": config.agentId,
+      "x-openclaw-session-key": config.sessionKey
+    },
+    fetch: (input, init = {}) => {
+      const headers = new Headers(init.headers);
+      headers.set("x-openclaw-agent-id", config.agentId);
+      headers.set("x-openclaw-session-key", config.sessionKey);
+      return fetch(input, { ...init, headers });
+    }
+  });
 }
 
 export async function requestOpenClaw(
   config: OpenClawConfig,
   messages: ChatMessage[]
 ): Promise<string> {
-  const response = await fetch(`${config.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.token}`,
-      "x-openclaw-agent-id": config.agentId,
-      "x-openclaw-session-key": config.sessionKey
-    },
-    body: JSON.stringify({
-      model: config.model,
-      stream: false,
-      messages: messages.map<OpenAIMessage>((message) => ({
+  const openai = createOpenClawProvider(config);
+
+  try {
+    const { text } = await generateText({
+      model: openai(config.model),
+      messages: messages.map((message) => ({
         role: message.role,
         content: message.content
       }))
-    })
-  });
+    });
 
-  const payload = (await response.json().catch(() => null)) as OpenAIChatResponse | null;
-  if (!response.ok) {
-    throw new Error(payload?.error?.message || `OpenClaw Gateway 请求失败: HTTP ${response.status}`);
-  }
-
-  const content = payload?.choices?.[0]?.message?.content;
-  if (typeof content === "string" && content.trim()) {
-    return content;
-  }
-
-  if (Array.isArray(content)) {
-    const text = content
-      .map((part) => (typeof part.text === "string" ? part.text : ""))
-      .join("")
-      .trim();
-    if (text) {
+    if (text.trim()) {
       return text;
     }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`OpenClaw Gateway 请求失败: ${message}`);
   }
 
   throw new Error("OpenClaw Gateway 返回了空响应。");
