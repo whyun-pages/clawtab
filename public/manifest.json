@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "ClawTab",
+  "version": "0.1.0",
+  "description": "浏览器自动化助手，在 Chrome 插件环境中汇总标签页内容并进行对话。",
+  "permissions": ["storage", "tabs", "sidePanel"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ClawTab"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
