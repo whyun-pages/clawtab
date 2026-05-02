@@ -1,6 +1,11 @@
-import type { ChatMessage, ConnectorResult, OpenClawConfig, PageSnapshot } from "../shared/types";
-import { requestOpenClaw } from "./openclaw-gateway";
-import { decideSkill } from "./skills";
+import type {
+  ChatMessage,
+  ConnectorResult,
+  OpenClawConfig,
+  PageSnapshot,
+} from '../shared/types';
+import { requestOpenClaw } from './openclaw-gateway';
+import { decideSkill } from './skills';
 
 function scoreTab(tab: PageSnapshot, message: string): number {
   const haystack = `${tab.title}\n${tab.url}\n${tab.text}`.toLowerCase();
@@ -8,10 +13,16 @@ function scoreTab(tab: PageSnapshot, message: string): number {
     .toLowerCase()
     .split(/\s+/)
     .filter(Boolean)
-    .reduce((score, token) => (haystack.includes(token) ? score + 1 : score), 0);
+    .reduce(
+      (score, token) => (haystack.includes(token) ? score + 1 : score),
+      0,
+    );
 }
 
-function selectRelatedTabs(message: string, tabs: PageSnapshot[]): PageSnapshot[] {
+function selectRelatedTabs(
+  message: string,
+  tabs: PageSnapshot[],
+): PageSnapshot[] {
   return [...tabs]
     .map((tab) => ({ tab, score: scoreTab(tab, message) }))
     .sort((a, b) => {
@@ -26,46 +37,49 @@ function selectRelatedTabs(message: string, tabs: PageSnapshot[]): PageSnapshot[
 
 function summarizeTabs(tabs: PageSnapshot[]): string {
   if (tabs.length === 0) {
-    return "当前没有可用的标签页内容。请先打开网页，待插件抓取完成后再提问。";
+    return '当前没有可用的标签页内容。请先打开网页，待插件抓取完成后再提问。';
   }
 
   return tabs
     .map(
       (tab, index) =>
-        `${index + 1}. ${tab.title}\nURL: ${tab.url}\n摘要: ${tab.text.slice(0, 180) || "页面暂无可提取正文"}`
+        `${index + 1}. ${tab.title}\nURL: ${tab.url}\n摘要: ${tab.text.slice(0, 180) || '页面暂无可提取正文'}`,
     )
-    .join("\n\n");
+    .join('\n\n');
 }
 
-function buildSystemPrompt(relatedTabs: PageSnapshot[], userMessage: string): string {
+function buildSystemPrompt(
+  relatedTabs: PageSnapshot[],
+  userMessage: string,
+): string {
   const decision = decideSkill(userMessage);
   const skillLine = decision.skill
     ? `用户当前请求命中了 ${decision.skill} skill，原因：${decision.reason}`
     : `用户当前请求未命中内置 skill，原因：${decision.reason}`;
 
   return [
-    "你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。",
-    "你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据。",
-    "当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。",
+    '你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。',
+    '你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据。',
+    '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
     skillLine,
-    "",
-    "当前相关标签页：",
-    summarizeTabs(relatedTabs),
-    "",
-    `本轮用户问题：${userMessage}`
-  ].join("\n");
+    '',
+    // '当前相关标签页：',
+    // summarizeTabs(relatedTabs),
+    // '',
+    `本轮用户问题：${userMessage}`,
+  ].join('\n');
 }
 
 function buildMissingConfigReply(relatedTabs: PageSnapshot[]): string {
   return [
-    "还没有配置 OpenClaw Gateway，暂时无法走真实 connector。",
-    "请在插件设置中填写 Base URL 和 Token。",
-    "",
-    "当前可用标签页预览：",
-    summarizeTabs(relatedTabs),
-    "",
-    "默认 Base URL 可填：http://127.0.0.1:18789/v1"
-  ].join("\n");
+    '还没有配置 OpenClaw Gateway，暂时无法走真实 connector。',
+    '请在插件设置中填写 Base URL 和 Token。',
+    '',
+    // '当前可用标签页预览：',
+    // summarizeTabs(relatedTabs),
+    // '',
+    '默认 Base URL 可填：http://127.0.0.1:18789/v1',
+  ].join('\n');
 }
 
 function trimHistory(history: ChatMessage[]): ChatMessage[] {
@@ -76,7 +90,7 @@ export async function runConnector(
   message: string,
   tabs: PageSnapshot[],
   config: OpenClawConfig,
-  history: ChatMessage[]
+  history: ChatMessage[],
 ): Promise<ConnectorResult> {
   const decision = decideSkill(message);
   const relatedTabs = selectRelatedTabs(message, tabs);
@@ -86,22 +100,22 @@ export async function runConnector(
       reply: buildMissingConfigReply(relatedTabs),
       decision,
       relatedTabs,
-      mode: "config-required"
+      mode: 'config-required',
     };
   }
 
   const gatewayMessages: ChatMessage[] = [
     {
       id: crypto.randomUUID(),
-      role: "system",
-      content: buildSystemPrompt(relatedTabs, message)
+      role: 'system',
+      content: buildSystemPrompt(relatedTabs, message),
     },
     // ...trimHistory(history).filter((entry) => entry.role !== "system"),
     {
       id: crypto.randomUUID(),
-      role: "user",
-      content: message
-    }
+      role: 'user',
+      content: message,
+    },
   ];
 
   const reply = await requestOpenClaw(config, gatewayMessages);
@@ -110,6 +124,6 @@ export async function runConnector(
     reply,
     decision,
     relatedTabs,
-    mode: "gateway"
+    mode: 'gateway',
   };
 }

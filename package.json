@@ -5,8 +5,10 @@
   "type": "module",
   "description": "ClawTab Chrome extension powered by an OpenClaw-style connector.",
   "scripts": {
-    "build": "node ./scripts/build.mjs",
-    "dev": "node ./scripts/build.mjs --watch",
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
     "clean": "node -e \"import('node:fs/promises').then(fs => fs.rm('dist', { recursive: true, force: true }))\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -14,15 +16,25 @@
     "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
     "@types/chrome": "^0.1.40",
     "@types/node": "^25.5.2",
-    "esbuild": "^0.25.12",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.59.1",
+    "vite": "^8.0.10",
     "vitest": "^3.2.4"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.41",
-    "ai": "^6.0.159"
+    "@mozilla/readability": "^0.6.0",
+    "ai": "^6.0.159",
+    "node-html-markdown": "^2.0.0",
+    "zod": "^4.3.6"
   }
 }

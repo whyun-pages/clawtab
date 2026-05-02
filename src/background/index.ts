@@ -1,61 +1,73 @@
 /**
  * MV3 Service Worker：接收 content/popup 消息，维护标签页快照、聊天历史与扩展配置。
  */
-import { runConnector } from "./connector";
-import { getConfig, getHistory, resetHistory, saveConfig, saveHistory } from "./storage";
-import { listSnapshots, removeSnapshot, upsertSnapshot } from "./tab-content-store";
+import { runConnector } from './connector';
+import {
+  getConfig,
+  getHistory,
+  resetHistory,
+  saveConfig,
+  saveHistory,
+} from './storage';
+import {
+  listSnapshots,
+  removeSnapshot,
+  upsertSnapshot,
+} from './tab-content-store';
 import type {
   ContentSnapshotMessage,
   GetChatStateResponse,
   RuntimeMessage,
   SendChatRequest,
-  SendChatResponse
-} from "../shared/types";
+  SendChatResponse,
+} from '../shared/types';
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("ClawTab installed.");
+  console.log('ClawTab installed.');
 });
 
 // 异步分支需 return true 并保持 sendResponse 在异步完成后调用，否则通道会提前关闭。
-chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendResponse) => {
-  // 同步应答：页面文本/结构快照
-  if (message.type === "content/snapshot") {
-    handleContentSnapshot(message, sender.tab?.id);
-    sendResponse({ ok: true });
+chrome.runtime.onMessage.addListener(
+  (message: RuntimeMessage, sender, sendResponse) => {
+    // 同步应答：页面文本/结构快照
+    if (message.type === 'content/snapshot') {
+      handleContentSnapshot(message, sender.tab?.id);
+      sendResponse({ ok: true });
+      return false;
+    }
+
+    // 用户消息 → connector → 追加 assistant 回复到历史
+    if (message.type === 'chat/send') {
+      void handleChat(message).then(sendResponse);
+      return true;
+    }
+
+    // 拉取聊天与配置
+    if (message.type === 'chat/state:get') {
+      void handleGetChatState().then(sendResponse);
+      return true;
+    }
+
+    // 清空历史
+    if (message.type === 'chat/state:reset') {
+      void handleResetChatState().then(sendResponse);
+      return true;
+    }
+
+    // 仅配置读
+    if (message.type === 'config/get') {
+      void handleGetConfig().then(sendResponse);
+      return true;
+    }
+    // 保存配置
+    if (message.type === 'config/save') {
+      void handleSaveConfig(message.config).then(sendResponse);
+      return true;
+    }
+
     return false;
-  }
-
-  // 用户消息 → connector → 追加 assistant 回复到历史
-  if (message.type === "chat/send") {
-    void handleChat(message).then(sendResponse);
-    return true;
-  }
-
-  // 拉取聊天与配置
-  if (message.type === "chat/state:get") {
-    void handleGetChatState().then(sendResponse);
-    return true;
-  }
-
-  // 清空历史
-  if (message.type === "chat/state:reset") {
-    void handleResetChatState().then(sendResponse);
-    return true;
-  }
-
-  // 仅配置读
-  if (message.type === "config/get") {
-    void handleGetConfig().then(sendResponse);
-    return true;
-  }
-  // 保存配置
-  if (message.type === "config/save") {
-    void handleSaveConfig(message.config).then(sendResponse);
-    return true;
-  }
-
-  return false;
-});
+  },
+);
 
 // 标签关闭后清理对应快照，避免内存与存储泄漏。
 chrome.tabs.onRemoved.addListener((tabId) => {
@@ -63,14 +75,17 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 /** 来自 content script 的页面快照，按 tabId 写入 tabContentStore。 */
-function handleContentSnapshot(message: ContentSnapshotMessage, tabId?: number): void {
-  if (typeof tabId !== "number") {
+function handleContentSnapshot(
+  message: ContentSnapshotMessage,
+  tabId?: number,
+): void {
+  if (typeof tabId !== 'number') {
     return;
   }
 
   upsertSnapshot({
     tabId,
-    ...message.snapshot
+    ...message.snapshot,
   });
 }
 
@@ -79,24 +94,29 @@ async function handleChat(message: SendChatRequest): Promise<SendChatResponse> {
   const [config, history] = await Promise.all([getConfig(), getHistory()]);
   const userEntry = {
     id: crypto.randomUUID(),
-    role: "user" as const,
-    content: message.message
+    role: 'user' as const,
+    content: message.message,
   };
-  const result = await runConnector(message.message, listSnapshots(), config, history);
+  const result = await runConnector(
+    message.message,
+    listSnapshots(),
+    config,
+    history,
+  );
   const nextHistory = await saveHistory([
     ...history,
     userEntry,
     {
       id: crypto.randomUUID(),
-      role: "assistant",
-      content: result.reply
-    }
+      role: 'assistant',
+      content: result.reply,
+    },
   ]);
 
   return {
     ok: true,
     result,
-    history: nextHistory
+    history: nextHistory,
   };
 }
 
@@ -106,7 +126,7 @@ async function handleGetChatState(): Promise<GetChatStateResponse> {
   return {
     ok: true,
     config,
-    history
+    history,
   };
 }
 
@@ -116,7 +136,7 @@ async function handleResetChatState(): Promise<GetChatStateResponse> {
   return {
     ok: true,
     config,
-    history
+    history,
   };
 }
 
@@ -124,7 +144,7 @@ async function handleResetChatState(): Promise<GetChatStateResponse> {
 async function handleGetConfig() {
   return {
     ok: true,
-    config: await getConfig()
+    config: await getConfig(),
   };
 }
 
@@ -132,6 +152,6 @@ async function handleGetConfig() {
 async function handleSaveConfig(config: Awaited<ReturnType<typeof getConfig>>) {
   return {
     ok: true,
-    config: await saveConfig(config)
+    config: await saveConfig(config),
   };
 }

@@ -1,4 +1,4 @@
-export type SkillName = "shopping" | "social" | "video";
+export type SkillName = 'shopping' | 'social' | 'video';
 
 export type TabId = number;
 
@@ -15,7 +15,7 @@ export interface PageSnapshot {
 
 export interface ChatMessage {
   id: string;
-  role: "user" | "assistant" | "system";
+  role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
@@ -36,11 +36,11 @@ export interface ConnectorResult {
   reply: string;
   decision: SkillDecision;
   relatedTabs: PageSnapshot[];
-  mode: "gateway" | "config-required";
+  mode: 'gateway' | 'config-required';
 }
 
 export interface SendChatRequest {
-  type: "chat/send";
+  type: 'chat/send';
   message: string;
 }
 
@@ -51,7 +51,7 @@ export interface SendChatResponse {
 }
 
 export interface GetChatStateRequest {
-  type: "chat/state:get";
+  type: 'chat/state:get';
 }
 
 export interface GetChatStateResponse {
@@ -61,11 +61,11 @@ export interface GetChatStateResponse {
 }
 
 export interface ResetChatStateRequest {
-  type: "chat/state:reset";
+  type: 'chat/state:reset';
 }
 
 export interface SaveConfigRequest {
-  type: "config/save";
+  type: 'config/save';
   config: OpenClawConfig;
 }
 
@@ -75,12 +75,12 @@ export interface SaveConfigResponse {
 }
 
 export interface GetConfigRequest {
-  type: "config/get";
+  type: 'config/get';
 }
 
 export interface ContentSnapshotMessage {
-  type: "content/snapshot";
-  snapshot: Omit<PageSnapshot, "tabId">;
+  type: 'content/snapshot';
+  snapshot: Omit<PageSnapshot, 'tabId'>;
 }
 
 export type RuntimeMessage =
