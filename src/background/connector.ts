@@ -35,18 +35,18 @@ function selectRelatedTabs(
     .map(({ tab }) => tab);
 }
 
-function summarizeTabs(tabs: PageSnapshot[]): string {
-  if (tabs.length === 0) {
-    return '当前没有可用的标签页内容。请先打开网页，待插件抓取完成后再提问。';
-  }
+// function summarizeTabs(tabs: PageSnapshot[]): string {
+//   if (tabs.length === 0) {
+//     return '当前没有可用的标签页内容。请先打开网页，待插件抓取完成后再提问。';
+//   }
 
-  return tabs
-    .map(
-      (tab, index) =>
-        `${index + 1}. ${tab.title}\nURL: ${tab.url}\n摘要: ${tab.text.slice(0, 180) || '页面暂无可提取正文'}`,
-    )
-    .join('\n\n');
-}
+//   return tabs
+//     .map(
+//       (tab, index) =>
+//         `${index + 1}. ${tab.title}\nURL: ${tab.url}\n摘要: ${tab.text.slice(0, 180) || '页面暂无可提取正文'}`,
+//     )
+//     .join('\n\n');
+// }
 
 function buildSystemPrompt(
   relatedTabs: PageSnapshot[],
@@ -82,9 +82,9 @@ function buildMissingConfigReply(relatedTabs: PageSnapshot[]): string {
   ].join('\n');
 }
 
-function trimHistory(history: ChatMessage[]): ChatMessage[] {
-  return history.slice(-12);
-}
+// function trimHistory(history: ChatMessage[]): ChatMessage[] {
+//   return history.slice(-12);
+// }
 
 export async function runConnector(
   message: string,

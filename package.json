@@ -5,8 +5,9 @@
   "type": "module",
   "description": "ClawTab Chrome extension powered by an OpenClaw-style connector.",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && vite build --mode content",
     "dev": "vite build --watch",
+    "dev:content": "vite build --watch --mode content",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "clean": "node -e \"import('node:fs/promises').then(fs => fs.rm('dist', { recursive: true, force: true }))\"",
