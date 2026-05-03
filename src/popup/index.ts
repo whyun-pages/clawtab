@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import './sentry-setup';
+
 import './styles.css';
 
 import type {
@@ -9,7 +12,7 @@ import type {
   SaveConfigRequest,
   SaveConfigResponse,
   SendChatRequest,
-  SendChatResponse
+  SendChatResponse,
 } from '../shared/types';
 
 const messagesElement = document.querySelector<HTMLElement>('#messages');
@@ -48,7 +51,8 @@ formElement?.addEventListener('submit', async (event) => {
       type: 'chat/send',
       message,
     };
-    const response: SendChatResponse = await chrome.runtime.sendMessage(request);
+    const response: SendChatResponse =
+      await chrome.runtime.sendMessage(request);
     history = response.history;
     render();
   } catch (error) {
@@ -62,7 +66,8 @@ resetButton?.addEventListener('click', async () => {
   const request: ResetChatStateRequest = {
     type: 'chat/state:reset',
   };
-  const response: GetChatStateResponse = await chrome.runtime.sendMessage(request);
+  const response: GetChatStateResponse =
+    await chrome.runtime.sendMessage(request);
   history = response.history;
   currentConfig = response.config;
   hydrateConfig(currentConfig);
@@ -84,7 +89,8 @@ configForm?.addEventListener('submit', async (event) => {
     type: 'config/save',
     config: nextConfig,
   };
-  const response: SaveConfigResponse = await chrome.runtime.sendMessage(request);
+  const response: SaveConfigResponse =
+    await chrome.runtime.sendMessage(request);
   currentConfig = response.config;
   hydrateConfig(currentConfig);
   setConfigStatus(buildConfigStatus(currentConfig));
@@ -103,7 +109,8 @@ async function bootstrap(): Promise<void> {
   const request: GetChatStateRequest = {
     type: 'chat/state:get',
   };
-  const response: GetChatStateResponse = await chrome.runtime.sendMessage(request);
+  const response: GetChatStateResponse =
+    await chrome.runtime.sendMessage(request);
   history = response.history;
   currentConfig = response.config;
   hydrateConfig(response.config);

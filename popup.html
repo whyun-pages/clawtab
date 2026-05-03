@@ -4,9 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ClawTab</title>
-    <script
-  src="https://js.sentry-cdn.com/ca634931acfa96d1f5b5605bc29e36ed.min.js"
-  crossorigin="anonymous"></script>
   </head>
   <body>
     <main class="app">
@@ -58,5 +55,21 @@
     </main>
 
     <script type="module" src="/src/popup/index.ts"></script>
+    <script>
+    if ("Proxy" in window) {
+      var n = {
+        get: function (o, e) {
+          return new Proxy(function (n) {
+            return "flush" === e || "close" === e
+              ? Promise.resolve()
+              : "function" == typeof n
+                ? n(window.Sentry)
+                : window.Sentry;
+          }, n);
+        },
+      };
+      window.Sentry = new Proxy({}, n);
+    }
+  </script>
   </body>
 </html>
