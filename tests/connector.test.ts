@@ -74,18 +74,28 @@ describe('runConnector', () => {
   });
 
   it('calls the real gateway when config is ready', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              content: '这是 OpenClaw Gateway 的真实回复。',
-            },
+    const gatewayBody = {
+      id: 'chatcmpl-test',
+      object: 'chat.completion',
+      created: 0,
+      model: 'openclaw/default',
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant' as const,
+            content: '这是 OpenClaw Gateway 的真实回复。',
           },
-        ],
+          finish_reason: 'stop',
+        },
+      ],
+    };
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(gatewayBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
       }),
-    } as Response);
+    );
 
     const result = await runConnector(
       '这个页面主要说了什么',
@@ -95,17 +105,18 @@ describe('runConnector', () => {
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://127.0.0.1:18789/v1/chat/completions',
-      expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          Authorization: 'Bearer test-token',
-          'x-openclaw-agent-id': 'main',
-          'x-openclaw-session-key': 'session-1',
-        }),
-      }),
-    );
+    const firstCall = fetchMock.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    const [urlArg, initArg] = firstCall as [
+      Parameters<typeof fetch>[0],
+      RequestInit | undefined,
+    ];
+    expect(urlArg).toBe('http://127.0.0.1:18789/v1/chat/completions');
+    expect(initArg?.method).toBe('POST');
+    const sentHeaders = new Headers(initArg?.headers);
+    expect(sentHeaders.get('Authorization')).toBe('Bearer test-token');
+    expect(sentHeaders.get('x-openclaw-agent-id')).toBe('main');
+    expect(sentHeaders.get('x-openclaw-session-key')).toBe('session-1');
     expect(result.decision.skill).toBeNull();
     expect(result.mode).toBe('gateway');
     expect(result.reply).toContain('这是 OpenClaw Gateway 的真实回复');

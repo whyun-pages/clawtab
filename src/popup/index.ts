@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import './sentry-setup';
+import '../lib/sentry-setup';
 
 import './styles.css';
 

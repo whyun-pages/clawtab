@@ -55,21 +55,5 @@
     </main>
 
     <script type="module" src="/src/popup/index.ts"></script>
-    <script>
-    if ("Proxy" in window) {
-      var n = {
-        get: function (o, e) {
-          return new Proxy(function (n) {
-            return "flush" === e || "close" === e
-              ? Promise.resolve()
-              : "function" == typeof n
-                ? n(window.Sentry)
-                : window.Sentry;
-          }, n);
-        },
-      };
-      window.Sentry = new Proxy({}, n);
-    }
-  </script>
   </body>
 </html>

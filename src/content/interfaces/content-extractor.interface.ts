@@ -7,4 +7,3 @@ export interface ExtractPayload {
   url: string;
   body: HTMLElement;
 }
-

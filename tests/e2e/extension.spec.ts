@@ -2,6 +2,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from '@playwright/test';
 
+import { defaultLogger } from '../../src/lib/logger';
+
 const rootDir = path.dirname(
   fileURLToPath(new URL('../../package.json', import.meta.url)),
 );
@@ -12,5 +14,5 @@ test('loads the built extension', async ({ browserName }) => {
     browserName !== 'chromium',
     'Chrome extension e2e requires Chromium.',
   );
-  console.log(`Build the extension and load from: ${extensionPath}`);
+  defaultLogger.info(`Build the extension and load from: ${extensionPath}`);
 });

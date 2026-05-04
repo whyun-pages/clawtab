@@ -1,6 +1,7 @@
 /**
  * MV3 Service Worker：接收 content/popup 消息，维护标签页快照、聊天历史与扩展配置。
  */
+import { defaultLogger } from '../lib/logger';
 import { runConnector } from './connector';
 import {
   getConfig,
@@ -23,7 +24,7 @@ import type {
 } from '../shared/types';
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('ClawTab installed.');
+  defaultLogger.info('ClawTab installed.');
 });
 
 // 异步分支需 return true 并保持 sendResponse 在异步完成后调用，否则通道会提前关闭。

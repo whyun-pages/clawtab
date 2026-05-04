@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
           outDir: 'dist',
           emptyOutDir: false,
           sourcemap: true,
+          minify: false,
           target: 'chrome114',
           rollupOptions: {
             input: path.join(root, 'src/content/index.ts'),
@@ -44,6 +45,7 @@ export default defineConfig(({ mode }) => {
         outDir: 'dist',
         emptyOutDir: true,
         sourcemap: true,
+        minify: false,
         target: 'chrome114',
         rollupOptions: {
           input: {
