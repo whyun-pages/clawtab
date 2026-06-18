@@ -1,5 +1,5 @@
 import { defaultLogger } from '../lib/logger';
-import { scope } from '../lib/sentry-setup';
+import { ignoreErrors, scope } from '../lib/sentry-setup';
 import type { ContentSnapshotMessage } from '../shared/types';
 import { getInstance } from './content-extractor/extractor-factory';
 
@@ -92,6 +92,10 @@ window.addEventListener('hashchange', () => {
 });
 
 function captureException(errPrefix: string, error: Error | string): void {
+  const errMsg = error instanceof Error ? error.message : String(error);
+  if (ignoreErrors.includes(errMsg)) {
+    return;
+  }
   scope.captureException(error);
   defaultLogger.error(errPrefix, (error as Error).stack || error);
 }

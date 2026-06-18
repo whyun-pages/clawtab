@@ -7,7 +7,7 @@ import type {
   ChatMessage,
   GetChatStateRequest,
   GetChatStateResponse,
-  OpenClawConfig,
+  LlmConfig,
   ResetChatStateRequest,
   SaveConfigRequest,
   SaveConfigResponse,
@@ -24,14 +24,12 @@ const resetButton = document.querySelector<HTMLButtonElement>('#reset-button');
 const configForm = document.querySelector<HTMLFormElement>('#config-form');
 const baseUrlInput =
   document.querySelector<HTMLInputElement>('#config-base-url');
-const tokenInput = document.querySelector<HTMLInputElement>('#config-token');
+const apiKeyInput = document.querySelector<HTMLInputElement>('#config-api-key');
 const modelInput = document.querySelector<HTMLInputElement>('#config-model');
-const agentIdInput =
-  document.querySelector<HTMLInputElement>('#config-agent-id');
 const configStatus = document.querySelector<HTMLElement>('#config-status');
 
 let history: ChatMessage[] = [];
-let currentConfig: OpenClawConfig | null = null;
+let currentConfig: LlmConfig | null = null;
 
 void bootstrap();
 
@@ -78,12 +76,10 @@ resetButton?.addEventListener('click', async () => {
 configForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  const nextConfig: OpenClawConfig = {
+  const nextConfig: LlmConfig = {
     baseUrl: baseUrlInput?.value.trim() || '',
-    token: tokenInput?.value.trim() || '',
+    apiKey: apiKeyInput?.value.trim() || '',
     model: modelInput?.value.trim() || '',
-    agentId: agentIdInput?.value.trim() || '',
-    sessionKey: currentConfig?.sessionKey || `clawtab-${crypto.randomUUID()}`,
   };
   const request: SaveConfigRequest = {
     type: 'config/save',
@@ -135,18 +131,15 @@ function render(): void {
   messagesElement.scrollTop = messagesElement.scrollHeight;
 }
 
-function hydrateConfig(config: OpenClawConfig): void {
+function hydrateConfig(config: LlmConfig): void {
   if (baseUrlInput) {
     baseUrlInput.value = config.baseUrl;
   }
-  if (tokenInput) {
-    tokenInput.value = config.token;
+  if (apiKeyInput) {
+    apiKeyInput.value = config.apiKey;
   }
   if (modelInput) {
     modelInput.value = config.model;
-  }
-  if (agentIdInput) {
-    agentIdInput.value = config.agentId;
   }
 }
 
@@ -156,12 +149,12 @@ function setConfigStatus(value: string): void {
   }
 }
 
-function buildConfigStatus(config: OpenClawConfig): string {
-  if (!config.token) {
-    return '未配置 Token，发送消息时不会调用真实 OpenClaw Gateway。';
+function buildConfigStatus(config: LlmConfig): string {
+  if (!config.apiKey) {
+    return '未配置 API Key，发送消息时不会调用真实大模型接口。';
   }
 
-  return `已配置 ${config.baseUrl}，模型 ${config.model}，Agent ${config.agentId}。`;
+  return `已配置 ${config.baseUrl}，模型 ${config.model}。`;
 }
 
 function escapeHtml(value: string): string {

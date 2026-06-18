@@ -2,6 +2,13 @@
  * MV3 Service Worker：接收 content/popup 消息，维护标签页快照、聊天历史与扩展配置。
  */
 import { defaultLogger } from '../lib/logger';
+import type {
+  ContentSnapshotMessage,
+  GetChatStateResponse,
+  RuntimeMessage,
+  SendChatRequest,
+  SendChatResponse,
+} from '../shared/types';
 import { runConnector } from './connector';
 import {
   getConfig,
@@ -15,13 +22,6 @@ import {
   removeSnapshot,
   upsertSnapshot,
 } from './tab-content-store';
-import type {
-  ContentSnapshotMessage,
-  GetChatStateResponse,
-  RuntimeMessage,
-  SendChatRequest,
-  SendChatResponse,
-} from '../shared/types';
 
 chrome.runtime.onInstalled.addListener(() => {
   defaultLogger.info('ClawTab installed.');

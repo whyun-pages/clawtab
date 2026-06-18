@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { runConnector } from '../src/background/connector';
 import { decideSkill } from '../src/background/skills';
+import {
+  removeSnapshot,
+  upsertSnapshot,
+} from '../src/background/tab-content-store';
 import type {
   ChatMessage,
-  OpenClawConfig,
+  LlmConfig,
   PageSnapshot,
 } from '../src/shared/types';
 
@@ -24,12 +28,10 @@ const tabs: PageSnapshot[] = [
   },
 ];
 
-const config: OpenClawConfig = {
+const config: LlmConfig = {
   baseUrl: 'http://127.0.0.1:18789/v1',
-  token: 'test-token',
+  apiKey: 'test-api-key',
   model: 'openclaw/default',
-  agentId: 'main',
-  sessionKey: 'session-1',
 };
 
 const history: ChatMessage[] = [
@@ -42,6 +44,9 @@ const history: ChatMessage[] = [
 
 afterEach(() => {
   vi.restoreAllMocks();
+  for (const tab of tabs) {
+    removeSnapshot(tab.tabId);
+  }
 });
 
 describe('decideSkill', () => {
@@ -65,15 +70,15 @@ describe('runConnector', () => {
     const result = await runConnector(
       '请总结这个视频内容',
       tabs,
-      { ...config, token: '' },
+      { ...config, apiKey: '' },
       history,
     );
     expect(result.decision.skill).toBe('video');
     expect(result.mode).toBe('config-required');
-    expect(result.reply).toContain('还没有配置 OpenClaw Gateway');
+    expect(result.reply).toContain('还没有配置大模型接口');
   });
 
-  it('calls the real gateway when config is ready', async () => {
+  it('calls the LLM gateway when config is ready', async () => {
     const gatewayBody = {
       id: 'chatcmpl-test',
       object: 'chat.completion',
@@ -84,7 +89,7 @@ describe('runConnector', () => {
           index: 0,
           message: {
             role: 'assistant' as const,
-            content: '这是 OpenClaw Gateway 的真实回复。',
+            content: '这是大模型接口的真实回复。',
           },
           finish_reason: 'stop',
         },
@@ -114,12 +119,92 @@ describe('runConnector', () => {
     expect(urlArg).toBe('http://127.0.0.1:18789/v1/chat/completions');
     expect(initArg?.method).toBe('POST');
     const sentHeaders = new Headers(initArg?.headers);
-    expect(sentHeaders.get('Authorization')).toBe('Bearer test-token');
-    expect(sentHeaders.get('x-openclaw-agent-id')).toBe('main');
-    expect(sentHeaders.get('x-openclaw-session-key')).toBe('session-1');
+    expect(sentHeaders.get('Authorization')).toBe('Bearer test-api-key');
+    expect(sentHeaders.has('x-openclaw-agent-id')).toBe(false);
+    expect(sentHeaders.has('x-openclaw-session-key')).toBe(false);
     expect(result.decision.skill).toBeNull();
     expect(result.mode).toBe('gateway');
-    expect(result.reply).toContain('这是 OpenClaw Gateway 的真实回复');
+    expect(result.reply).toContain('这是大模型接口的真实回复');
     expect(result.relatedTabs).toHaveLength(2);
+  });
+
+  it('executes tool calls before returning the final response', async () => {
+    for (const tab of tabs) {
+      upsertSnapshot(tab);
+    }
+    const toolCallBody = {
+      id: 'chatcmpl-tool-call',
+      object: 'chat.completion',
+      created: 0,
+      model: 'openclaw/default',
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant' as const,
+            content: '我先查看可用标签页。',
+            tool_calls: [
+              {
+                id: 'call-list-tabs',
+                type: 'function' as const,
+                function: {
+                  name: 'tabSnapshotListIdsTool',
+                  arguments: '{}',
+                },
+              },
+            ],
+          },
+          finish_reason: 'tool_calls',
+        },
+      ],
+    };
+    const finalBody = {
+      id: 'chatcmpl-final',
+      object: 'chat.completion',
+      created: 0,
+      model: 'openclaw/default',
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant' as const,
+            content: '根据当前标签页，可以分两步完成。',
+          },
+          finish_reason: 'stop',
+        },
+      ],
+    };
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(toolCallBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(finalBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+
+    const result = await runConnector(
+      '超级玛丽移植到了 BIOS 下总共分几步？',
+      tabs,
+      config,
+      history,
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const secondCall = fetchMock.mock.calls[1];
+    expect(secondCall).toBeDefined();
+    const [, secondInitArg] = secondCall as [
+      Parameters<typeof fetch>[0],
+      RequestInit | undefined,
+    ];
+    expect(String(secondInitArg?.body)).toContain('tabSnapshotListIdsTool');
+    expect(String(secondInitArg?.body)).toContain('[1,2]');
+    expect(result.reply).toContain('根据当前标签页，可以分两步完成');
   });
 });

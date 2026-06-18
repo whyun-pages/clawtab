@@ -127,7 +127,7 @@
 
 处理流程：
 
-1. 读取 OpenClaw Gateway 配置
+1. 读取大模型配置
 2. 读取已有聊天历史
 3. 读取当前标签页快照列表
 4. 调用 `runConnector()`
@@ -158,7 +158,7 @@
 - `result.decision`：skill 判定结果
 - `result.relatedTabs`：此次回答参考的相关标签页
 - `result.mode`：
-  - `gateway`：已成功走真实 OpenClaw Gateway
+  - `gateway`：已成功走真实大模型接口
   - `config-required`：未完成配置，返回的是引导文案
 - `history`：写入存储后的完整聊天历史
 
@@ -192,7 +192,7 @@
 {
   ok: true,
   history: ChatMessage[],
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
@@ -230,20 +230,20 @@
 {
   ok: true,
   history: ChatMessage[],
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
 注意：
 
 - 当前只会清空聊天历史
-- 不会重置 OpenClaw 配置
+- 不会重置大模型配置
 
 ### `config/get`
 
 用途：
 
-- 读取当前 OpenClaw 配置
+- 读取当前大模型配置
 
 发送方：
 
@@ -263,7 +263,7 @@
 ```ts
 {
   ok: true,
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
@@ -271,7 +271,7 @@
 
 用途：
 
-- 保存 OpenClaw Gateway 配置
+- 保存大模型配置
 
 发送方：
 
@@ -284,10 +284,8 @@
   type: "config/save",
   config: {
     baseUrl: string,
-    token: string,
-    model: string,
-    agentId: string,
-    sessionKey: string
+    apiKey: string,
+    model: string
   }
 }
 ```
@@ -298,15 +296,13 @@
 2. 对配置做归一化：
    - 去掉 `baseUrl` 尾部斜杠
    - 缺省 `model` 时回退到默认值
-   - 缺省 `agentId` 时回退到默认值
-   - 缺省 `sessionKey` 时自动生成
 
 响应结构：
 
 ```ts
 {
   ok: true,
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
@@ -344,22 +340,20 @@
 - `tabId` 仅在 `background` 端完整存在
 - `text` 是裁剪后的页面正文摘要
 
-### `OpenClawConfig`
+### `LlmConfig`
 
 ```ts
 {
   baseUrl: string,
-  token: string,
-  model: string,
-  agentId: string,
-  sessionKey: string
+  apiKey: string,
+  model: string
 }
 ```
 
 说明：
 
 - `baseUrl` 默认是 `http://127.0.0.1:18789/v1`
-- `token` 为空时，聊天不会真正访问 Gateway
+- `apiKey` 为空时，聊天不会真正访问大模型接口
 
 ## 调用示例
 

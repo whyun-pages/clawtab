@@ -19,12 +19,10 @@ export interface ChatMessage {
   content: string;
 }
 
-export interface OpenClawConfig {
+export interface LlmConfig {
   baseUrl: string;
-  token: string;
+  apiKey: string;
   model: string;
-  agentId: string;
-  sessionKey: string;
 }
 
 export interface SkillDecision {
@@ -57,7 +55,7 @@ export interface GetChatStateRequest {
 export interface GetChatStateResponse {
   ok: true;
   history: ChatMessage[];
-  config: OpenClawConfig;
+  config: LlmConfig;
 }
 
 export interface ResetChatStateRequest {
@@ -66,12 +64,12 @@ export interface ResetChatStateRequest {
 
 export interface SaveConfigRequest {
   type: 'config/save';
-  config: OpenClawConfig;
+  config: LlmConfig;
 }
 
 export interface SaveConfigResponse {
   ok: true;
-  config: OpenClawConfig;
+  config: LlmConfig;
 }
 
 export interface GetConfigRequest {

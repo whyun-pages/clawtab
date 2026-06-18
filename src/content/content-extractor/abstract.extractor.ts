@@ -10,7 +10,7 @@ export abstract class AbstractContentExtractor {
   }
   protected async waitForStableDOM({
     quietTime = 1000,
-    timeout = 10000,
+    timeout = 30000,
   }: {
     quietTime?: number;
     timeout?: number;

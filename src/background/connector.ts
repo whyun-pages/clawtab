@@ -1,10 +1,10 @@
 import type {
   ChatMessage,
   ConnectorResult,
-  OpenClawConfig,
+  LlmConfig,
   PageSnapshot,
 } from '../shared/types';
-import { requestOpenClaw } from './openclaw-gateway';
+import { requestLlm } from './llm-gateway';
 import { decideSkill } from './skills';
 
 function scoreTab(tab: PageSnapshot, message: string): number {
@@ -60,7 +60,7 @@ function buildSystemPrompt(
   return [
     '你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。',
     '你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据。',
-    '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
+    // '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
     skillLine,
     '',
     // '当前相关标签页：',
@@ -72,8 +72,8 @@ function buildSystemPrompt(
 
 function buildMissingConfigReply(relatedTabs: PageSnapshot[]): string {
   return [
-    '还没有配置 OpenClaw Gateway，暂时无法走真实 connector。',
-    '请在插件设置中填写 Base URL 和 Token。',
+    '还没有配置大模型接口，暂时无法发送真实请求。',
+    '请在插件设置中填写 Base URL 和 API Key。',
     '',
     // '当前可用标签页预览：',
     // summarizeTabs(relatedTabs),
@@ -89,13 +89,13 @@ function buildMissingConfigReply(relatedTabs: PageSnapshot[]): string {
 export async function runConnector(
   message: string,
   tabs: PageSnapshot[],
-  config: OpenClawConfig,
+  config: LlmConfig,
   history: ChatMessage[],
 ): Promise<ConnectorResult> {
   const decision = decideSkill(message);
   const relatedTabs = selectRelatedTabs(message, tabs);
 
-  if (!config.baseUrl.trim() || !config.token.trim()) {
+  if (!config.baseUrl.trim() || !config.apiKey.trim()) {
     return {
       reply: buildMissingConfigReply(relatedTabs),
       decision,
@@ -118,7 +118,7 @@ export async function runConnector(
     },
   ];
 
-  const reply = await requestOpenClaw(config, gatewayMessages);
+  const reply = await requestLlm(config, gatewayMessages);
 
   return {
     reply,

@@ -1,14 +1,16 @@
-import type { ChatMessage, OpenClawConfig } from '../shared/types';
+import type { ChatMessage, LlmConfig } from '../shared/types';
 
 const CONFIG_KEY = 'openclaw-config';
 const HISTORY_KEY = 'chat-history';
 
-export const DEFAULT_OPENCLAW_CONFIG: OpenClawConfig = {
+type StoredLlmConfig = Partial<LlmConfig> & {
+  token?: string;
+};
+
+export const DEFAULT_LLM_CONFIG: LlmConfig = {
   baseUrl: 'http://127.0.0.1:18789/v1',
-  token: '',
+  apiKey: '',
   model: 'openclaw/default',
-  agentId: 'main',
-  sessionKey: `clawtab-${crypto.randomUUID()}`,
 };
 
 const DEFAULT_HISTORY: ChatMessage[] = [
@@ -16,27 +18,27 @@ const DEFAULT_HISTORY: ChatMessage[] = [
     id: crypto.randomUUID(),
     role: 'assistant',
     content:
-      '你好，我是 ClawTab。先在设置里填入 OpenClaw Gateway 地址和 Token，我就会通过真实的 OpenClaw connector 来回答你。',
+      '你好，我是 ClawTab。先在设置里填入大模型 Base URL 和 API Key，我就会通过真实的大模型接口来回答你。',
   },
 ];
 
-export async function getConfig(): Promise<OpenClawConfig> {
+export async function getConfig(): Promise<LlmConfig> {
   const stored = await chrome.storage.local.get(CONFIG_KEY);
+  const config = stored[CONFIG_KEY] as StoredLlmConfig | undefined;
+  const apiKey = config?.apiKey ?? config?.token ?? DEFAULT_LLM_CONFIG.apiKey;
+
   return {
-    ...DEFAULT_OPENCLAW_CONFIG,
-    ...(stored[CONFIG_KEY] as Partial<OpenClawConfig> | undefined),
+    baseUrl: config?.baseUrl ?? DEFAULT_LLM_CONFIG.baseUrl,
+    apiKey,
+    model: config?.model ?? DEFAULT_LLM_CONFIG.model,
   };
 }
 
-export async function saveConfig(
-  config: OpenClawConfig,
-): Promise<OpenClawConfig> {
-  const normalized: OpenClawConfig = {
-    ...config,
+export async function saveConfig(config: LlmConfig): Promise<LlmConfig> {
+  const normalized: LlmConfig = {
     baseUrl: config.baseUrl.replace(/\/+$/, ''),
-    model: config.model.trim() || DEFAULT_OPENCLAW_CONFIG.model,
-    agentId: config.agentId.trim() || DEFAULT_OPENCLAW_CONFIG.agentId,
-    sessionKey: config.sessionKey.trim() || `clawtab-${crypto.randomUUID()}`,
+    apiKey: config.apiKey.trim(),
+    model: config.model.trim() || DEFAULT_LLM_CONFIG.model,
   };
 
   await chrome.storage.local.set({

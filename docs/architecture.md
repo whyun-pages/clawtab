@@ -6,8 +6,8 @@ ClawTab 是一个运行在 Chrome 插件环境中的浏览器自动化助手原�
 
 - 从当前浏览器标签页提取页面上下文
 - 在插件弹窗中与用户对话
-- 将页面摘要、聊天历史和技能判定一起发送给 OpenClaw Gateway
-- 由 OpenClaw 返回最终回答
+- 将页面摘要、聊天历史和技能判定一起发送给大模型接口
+- 由大模型返回最终回答
 
 当前项目以 Chrome Extension Manifest V3 为基础，代码使用 TypeScript + ESM 编写。
 
@@ -53,7 +53,7 @@ ClawTab 是一个运行在 Chrome 插件环境中的浏览器自动化助手原�
 - 用 `sender.tab?.id` 给快照补全真实 `tabId`
 - 维护当前标签页快照缓存
 - 处理 popup 发来的聊天、配置和状态请求
-- 调用 connector 拼装上下文并访问 OpenClaw Gateway
+- 调用 connector 拼装上下文并访问大模型接口
 - 将聊天历史与配置存入 `chrome.storage.local`
 
 这是整个扩展的中枢。
@@ -66,11 +66,11 @@ ClawTab 是一个运行在 Chrome 插件环境中的浏览器自动化助手原�
 
 - 展示聊天消息列表
 - 提交用户问题
-- 展示和保存 OpenClaw Gateway 配置
+- 展示和保存大模型配置
 - 清空当前对话历史
 - 从后台读取初始化状态并渲染 UI
 
-`popup` 不直接调用 OpenClaw，而是统一走 `background`。
+`popup` 不直接调用大模型接口，而是统一走 `background`。
 
 ## 核心数据流
 
@@ -93,14 +93,14 @@ ClawTab 是一个运行在 Chrome 插件环境中的浏览器自动化助手原�
 4. `connector` 选择相关标签页
 5. `connector` 判断是否命中 `shopping` / `social` / `video` skill
 6. `connector` 构造 system prompt
-7. `background` 调用 OpenClaw Gateway 的 `/v1/chat/completions`
-8. OpenClaw 返回回答
+7. `background` 调用大模型接口的 `/v1/chat/completions`
+8. 大模型返回回答
 9. `background` 更新聊天历史
 10. `popup` 渲染最新历史
 
 ### 配置链路
 
-1. 用户在 `popup` 填写 Base URL / Token / Model / Agent ID
+1. 用户在 `popup` 填写 Base URL / API Key / Model
 2. `popup` 发送 `config/save`
 3. `background` 调用 `storage.ts` 进行归一化和持久化
 4. 后续聊天请求复用同一份配置
@@ -109,14 +109,14 @@ ClawTab 是一个运行在 Chrome 插件环境中的浏览器自动化助手原�
 
 位置：`src/background/connector.ts`
 
-connector 的职责不是直接做 UI 或存储，而是负责把“当前上下文”变成一次可发送给 OpenClaw 的请求。
+connector 的职责不是直接做 UI 或存储，而是负责把“当前上下文”变成一次可发送给大模型接口的请求。
 
 它当前做了四件事：
 
 1. 选取与用户问题最相关的标签页
 2. 对问题进行 skill 判定
 3. 根据标签页摘要和判定结果构造 system prompt
-4. 在配置有效时调用真实 OpenClaw Gateway
+4. 在配置有效时调用真实大模型接口
 
 如果配置不完整，connector 不会发请求，而是返回“请先配置 Gateway”的引导文案。
 
@@ -136,20 +136,18 @@ connector 的职责不是直接做 UI 或存储，而是负责把“当前上下
 - 真实的 skill 执行链路还没有接入
 - `runSkill()` 仍然是占位实现，后续可扩展为真实站点自动化
 
-## OpenClaw Gateway 接入方式
+## 大模型接入方式
 
-位置：`src/background/openclawGateway.ts`
+位置：`src/background/llm-gateway.ts`
 
-当前通过 OpenClaw 的 OpenAI 兼容接口接入：
+当前通过 OpenAI 兼容接口接入：
 
 - 接口：`POST /v1/chat/completions`
 - 默认 Base URL：`http://127.0.0.1:18789/v1`
 
 请求中会带上：
 
-- `Authorization: Bearer <token>`
-- `x-openclaw-agent-id`
-- `x-openclaw-session-key`
+- `Authorization: Bearer <apiKey>`
 
 请求体中包含：
 
@@ -183,7 +181,7 @@ connector 的职责不是直接做 UI 或存储，而是负责把“当前上下
 
 用途：
 
-- 保存 OpenClaw Gateway 配置
+- 保存大模型配置
 - 保存聊天历史
 
 存储介质：
@@ -228,7 +226,7 @@ connector 的职责不是直接做 UI 或存储，而是负责把“当前上下
 
 ## 推荐后续演进方向
 
-- 将 `runSkill()` 接入真实浏览器自动化或 OpenClaw 工具调用
+- 将 `runSkill()` 接入真实浏览器自动化或工具调用
 - 为标签页快照增加持久化和失效策略
 - 支持流式输出和更好的错误提示
 - 增加真实的扩展端到端测试

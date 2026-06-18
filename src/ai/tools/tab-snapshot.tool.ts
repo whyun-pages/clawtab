@@ -1,6 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { getSnapshot, listTabIds } from '../../background/tab-content-store';
+import { defaultLogger } from '../../lib/logger';
 
 export const tabSnapshotGetTool = tool({
   description:
@@ -19,10 +20,17 @@ export const tabSnapshotGetTool = tool({
       .nullable(),
   }),
   execute: ({ tabId }) => {
+    defaultLogger.info(`tabSnapshotGetTool called with tabId: ${tabId}`);
     const snapshot = getSnapshot(tabId);
     if (!snapshot) {
+      defaultLogger.info(
+        `tabSnapshotGetTool: No snapshot found for tabId: ${tabId}`,
+      );
       return { data: null };
     }
+    defaultLogger.info(
+      `tabSnapshotGetTool: Returning snapshot for tabId: ${tabId}`,
+    );
     return { data: snapshot };
   },
 });
@@ -34,6 +42,7 @@ export const tabSnapshotListIdsTool = tool({
     data: z.array(z.number()),
   }),
   execute: () => {
+    defaultLogger.info('tabSnapshotListIdsTool called');
     const tabIds = listTabIds();
     return { data: tabIds };
   },
