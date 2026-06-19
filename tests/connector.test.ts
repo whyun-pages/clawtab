@@ -1,15 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { runConnector } from '../src/background/connector';
+import { runConnector, runConnectorStream } from '../src/background/connector';
 import { decideSkill } from '../src/background/skills';
 import {
   removeSnapshot,
   upsertSnapshot,
 } from '../src/background/tab-content-store';
-import type {
-  ChatMessage,
-  LlmConfig,
-  PageSnapshot,
-} from '../src/shared/types';
+import type { LlmStreamDelta } from '../src/background/think-tag-parser';
+import type { ChatMessage, LlmConfig, PageSnapshot } from '../src/shared/types';
 
 const tabs: PageSnapshot[] = [
   {
@@ -41,6 +38,34 @@ const history: ChatMessage[] = [
     content: '你好',
   },
 ];
+
+function createSseResponse(chunks: unknown[]): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`),
+        );
+      }
+      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: { 'Content-Type': 'text/event-stream' },
+  });
+}
+
+function requestBodyAsString(body: BodyInit | null | undefined): string {
+  if (typeof body === 'string') {
+    return body;
+  }
+
+  throw new Error(`Expected request body to be a string, got ${typeof body}`);
+}
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -148,7 +173,7 @@ describe('runConnector', () => {
                 id: 'call-list-tabs',
                 type: 'function' as const,
                 function: {
-                  name: 'tabSnapshotListIdsTool',
+                  name: 'tabSnapshotListIds',
                   arguments: '{}',
                 },
               },
@@ -203,8 +228,229 @@ describe('runConnector', () => {
       Parameters<typeof fetch>[0],
       RequestInit | undefined,
     ];
-    expect(String(secondInitArg?.body)).toContain('tabSnapshotListIdsTool');
-    expect(String(secondInitArg?.body)).toContain('[1,2]');
+    const secondBody = requestBodyAsString(secondInitArg?.body);
+    expect(secondBody).toContain('tabSnapshotListIds');
+    expect(secondBody).toContain('[1,2]');
     expect(result.reply).toContain('根据当前标签页，可以分两步完成');
+  });
+
+  it('streams setup guidance when gateway config is missing', async () => {
+    const deltas: LlmStreamDelta[] = [];
+
+    const result = await runConnectorStream(
+      '请总结这个视频内容',
+      tabs,
+      { ...config, apiKey: '' },
+      history,
+      (delta) => deltas.push(delta),
+    );
+
+    expect(result.decision.skill).toBe('video');
+    expect(result.mode).toBe('config-required');
+    expect(result.reply).toContain('还没有配置大模型接口');
+    expect(deltas.map((part) => part.delta).join('')).toBe(result.reply);
+    expect(deltas.every((part) => part.type === 'answer')).toBe(true);
+  });
+
+  it('streams LLM text deltas and returns the final reply', async () => {
+    const chunks = [
+      {
+        id: 'chatcmpl-stream',
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: 'openclaw/default',
+        choices: [
+          {
+            index: 0,
+            delta: { role: 'assistant', content: '第一段' },
+            finish_reason: null,
+          },
+        ],
+      },
+      {
+        id: 'chatcmpl-stream',
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: 'openclaw/default',
+        choices: [
+          {
+            index: 0,
+            delta: { content: '，第二段。' },
+            finish_reason: null,
+          },
+        ],
+      },
+      {
+        id: 'chatcmpl-stream',
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: 'openclaw/default',
+        choices: [
+          {
+            index: 0,
+            delta: {},
+            finish_reason: 'stop',
+          },
+        ],
+      },
+    ];
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(createSseResponse(chunks));
+    const deltas: LlmStreamDelta[] = [];
+
+    const result = await runConnectorStream(
+      '这个页面主要说了什么',
+      tabs,
+      config,
+      history,
+      (delta) => deltas.push(delta),
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result.mode).toBe('gateway');
+    expect(result.reply).toBe('第一段，第二段。');
+    expect(deltas).toEqual([
+      { type: 'answer', delta: '第一段' },
+      { type: 'answer', delta: '，第二段。' },
+    ]);
+  });
+
+  it('streams tool deltas without adding them to the final reply', async () => {
+    for (const tab of tabs) {
+      upsertSnapshot(tab);
+    }
+
+    const toolCallChunks = [
+      {
+        id: 'chatcmpl-tool-stream',
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: 'openclaw/default',
+        choices: [
+          {
+            index: 0,
+            delta: {
+              role: 'assistant',
+              tool_calls: [
+                {
+                  id: 'call-list-tabs',
+                  type: 'function' as const,
+                  function: {
+                    name: 'tabSnapshotListIds',
+                    arguments: '{}',
+                  },
+                  index: 0,
+                },
+              ],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      },
+    ];
+    const finalChunks = [
+      {
+        id: 'chatcmpl-final-stream',
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: 'openclaw/default',
+        choices: [
+          {
+            index: 0,
+            delta: { role: 'assistant', content: '工具执行后回答。' },
+            finish_reason: 'stop',
+          },
+        ],
+      },
+    ];
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(createSseResponse(toolCallChunks))
+      .mockResolvedValueOnce(createSseResponse(finalChunks));
+    const deltas: LlmStreamDelta[] = [];
+
+    const result = await runConnectorStream(
+      '先查一下标签页',
+      tabs,
+      config,
+      history,
+      (delta) => deltas.push(delta),
+    );
+
+    const toolDeltas = deltas.filter((part) => part.type === 'tool');
+    expect(toolDeltas.length).toBeGreaterThan(0);
+    expect(toolDeltas).toContainEqual(
+      expect.objectContaining({
+        delta: expect.objectContaining({
+          event: 'call',
+          toolCallId: 'call-list-tabs',
+          toolName: 'tabSnapshotListIds',
+          input: {},
+        }),
+        type: 'tool',
+      }),
+    );
+    expect(result.reply).toBe('工具执行后回答。');
+    expect(result.toolCalls).toEqual([
+      {
+        event: 'result',
+        toolCallId: 'call-list-tabs',
+        toolName: 'tabSnapshotListIds',
+        input: {},
+        output: { data: [1, 2] },
+      },
+    ]);
+    expect(deltas.filter((part) => part.type === 'answer')).toEqual([
+      { type: 'answer', delta: '工具执行后回答。' },
+    ]);
+  });
+
+  it('splits MiniMax-style think tags into reasoning and answer deltas', async () => {
+    const chunks = [
+      {
+        id: 'chatcmpl-stream',
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: 'openclaw/default',
+        choices: [
+          {
+            index: 0,
+            delta: { role: 'assistant', content: '<think>先分析' },
+            finish_reason: null,
+          },
+        ],
+      },
+      {
+        id: 'chatcmpl-stream',
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: 'openclaw/default',
+        choices: [
+          {
+            index: 0,
+            delta: { content: '一下</think>最终答案' },
+            finish_reason: 'stop',
+          },
+        ],
+      },
+    ];
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(createSseResponse(chunks));
+    const deltas: LlmStreamDelta[] = [];
+
+    const result = await runConnectorStream(
+      '这个页面主要说了什么',
+      tabs,
+      config,
+      history,
+      (delta) => deltas.push(delta),
+    );
+
+    expect(result.reply).toBe('最终答案');
+    expect(result.reasoning).toBe('先分析一下');
+    expect(deltas).toEqual([
+      { type: 'reasoning', delta: '先分析' },
+      { type: 'reasoning', delta: '一下' },
+      { type: 'answer', delta: '最终答案' },
+    ]);
   });
 });

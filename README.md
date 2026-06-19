@@ -46,11 +46,6 @@ pnpm test:e2e
 
 需要准备兼容 OpenAI Chat Completions 的 Base URL、API Key 和模型名。
 
-插件中的默认连接参数：
-
-- Base URL: `http://127.0.0.1:18789/v1`
-- Model: `openclaw/default`
-
 ### 验证 chat completions 接口
 
 拿到 API Key 后，可对 `POST <Base URL>/chat/completions` 做冒烟测试。请求体与 OpenAI Chat Completions 一致（JSON：`model`、`messages`，其中每条为 `role` + `content`）。与插件行为一致（见 `src/background/llm-gateway.ts`），请求头包含：
@@ -113,8 +108,11 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:18789/v1/chat/completions"
 
 ## TODO
 
-- 为三类 skill 接入真实站点自动化与结构化提取
-- 在 `chrome.storage` 中持久化聊天历史与标签页快照
-- 完善真实的 Playwright 扩展加载与交互测试
-- `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
-- connector 会先判断是否命中 `shopping` / `social` / `video` skill，再把标签页摘要、skill 判定和会话历史一起发给大模型接口
+- [ ] 为三类 skill 接入真实站点自动化与结构化提取
+- [ ] 在 `chrome.storage` 中持久化聊天历史与标签页快照
+- [ ] 完善真实的 Playwright 扩展加载与交互测试
+- [ ] `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
+- [ ] connector 会先判断是否命中 `shopping` / `social` / `video` skill，再把标签页摘要、skill 判定和会话历史一起发给大模型接口
+- [ ] 会话管理
+- [ ] 持久记忆
+- [ ] markdown 渲染

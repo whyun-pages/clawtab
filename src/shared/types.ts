@@ -17,6 +17,8 @@ export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  reasoning?: string;
+  toolCalls?: ToolStreamDelta[];
 }
 
 export interface LlmConfig {
@@ -32,6 +34,8 @@ export interface SkillDecision {
 
 export interface ConnectorResult {
   reply: string;
+  reasoning?: string;
+  toolCalls?: ToolStreamDelta[];
   decision: SkillDecision;
   relatedTabs: PageSnapshot[];
   mode: 'gateway' | 'config-required';
@@ -47,6 +51,95 @@ export interface SendChatResponse {
   result: ConnectorResult;
   history: ChatMessage[];
 }
+
+export const CHAT_STREAM_PORT = 'chat/stream';
+
+export type LlmStreamDeltaType = 'answer' | 'reasoning' | 'tool';
+
+export type ToolStreamDelta =
+  | {
+      event: 'call';
+      toolCallId: string;
+      toolName: string;
+      input: unknown;
+    }
+  | {
+      event: 'input-start';
+      toolCallId: string;
+      toolName: string;
+    }
+  | {
+      event: 'input-delta';
+      toolCallId: string;
+      toolName?: string;
+      delta: string;
+    }
+  | {
+      event: 'input-end';
+      toolCallId: string;
+      toolName?: string;
+    }
+  | {
+      event: 'result';
+      toolCallId: string;
+      toolName: string;
+      input: unknown;
+      output: unknown;
+    }
+  | {
+      event: 'error';
+      toolCallId: string;
+      toolName: string;
+      input: unknown;
+      error: unknown;
+    };
+
+export interface ChatStreamStartMessage {
+  type: 'chat/stream:start';
+  requestId: string;
+  message: string;
+}
+
+export interface ChatStreamStartedMessage {
+  type: 'chat/stream:started';
+  requestId: string;
+  assistantMessageId: string;
+}
+
+export type ChatStreamDeltaMessage =
+  | {
+      type: 'chat/stream:delta';
+      requestId: string;
+      deltaType: 'answer' | 'reasoning';
+      delta: string;
+    }
+  | {
+      type: 'chat/stream:delta';
+      requestId: string;
+      deltaType: 'tool';
+      delta: ToolStreamDelta;
+    };
+
+export interface ChatStreamDoneMessage {
+  type: 'chat/stream:done';
+  requestId: string;
+  result: ConnectorResult;
+  history: ChatMessage[];
+}
+
+export interface ChatStreamErrorMessage {
+  type: 'chat/stream:error';
+  requestId: string;
+  message: string;
+}
+
+export type ChatStreamClientMessage = ChatStreamStartMessage;
+
+export type ChatStreamServerMessage =
+  | ChatStreamStartedMessage
+  | ChatStreamDeltaMessage
+  | ChatStreamDoneMessage
+  | ChatStreamErrorMessage;
 
 export interface GetChatStateRequest {
   type: 'chat/state:get';

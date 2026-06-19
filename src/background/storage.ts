@@ -1,6 +1,6 @@
 import type { ChatMessage, LlmConfig } from '../shared/types';
 
-const CONFIG_KEY = 'openclaw-config';
+const CONFIG_KEY = 'llm-config';
 const HISTORY_KEY = 'chat-history';
 
 type StoredLlmConfig = Partial<LlmConfig> & {
@@ -8,9 +8,9 @@ type StoredLlmConfig = Partial<LlmConfig> & {
 };
 
 export const DEFAULT_LLM_CONFIG: LlmConfig = {
-  baseUrl: 'http://127.0.0.1:18789/v1',
+  baseUrl: '',
   apiKey: '',
-  model: 'openclaw/default',
+  model: '',
 };
 
 const DEFAULT_HISTORY: ChatMessage[] = [
@@ -28,17 +28,22 @@ export async function getConfig(): Promise<LlmConfig> {
   const apiKey = config?.apiKey ?? config?.token ?? DEFAULT_LLM_CONFIG.apiKey;
 
   return {
-    baseUrl: config?.baseUrl ?? DEFAULT_LLM_CONFIG.baseUrl,
-    apiKey,
-    model: config?.model ?? DEFAULT_LLM_CONFIG.model,
+    baseUrl: asConfigString(config?.baseUrl, DEFAULT_LLM_CONFIG.baseUrl),
+    apiKey: asConfigString(apiKey, DEFAULT_LLM_CONFIG.apiKey),
+    model: asConfigString(config?.model, DEFAULT_LLM_CONFIG.model),
   };
 }
 
 export async function saveConfig(config: LlmConfig): Promise<LlmConfig> {
   const normalized: LlmConfig = {
-    baseUrl: config.baseUrl.replace(/\/+$/, ''),
-    apiKey: config.apiKey.trim(),
-    model: config.model.trim() || DEFAULT_LLM_CONFIG.model,
+    baseUrl: asConfigString(config.baseUrl, DEFAULT_LLM_CONFIG.baseUrl).replace(
+      /\/+$/,
+      '',
+    ),
+    apiKey: asConfigString(config.apiKey, DEFAULT_LLM_CONFIG.apiKey).trim(),
+    model:
+      asConfigString(config.model, DEFAULT_LLM_CONFIG.model).trim() ||
+      DEFAULT_LLM_CONFIG.model,
   };
 
   await chrome.storage.local.set({
@@ -66,4 +71,8 @@ export async function saveHistory(
 export async function resetHistory(): Promise<ChatMessage[]> {
   await chrome.storage.local.remove(HISTORY_KEY);
   return DEFAULT_HISTORY;
+}
+
+function asConfigString(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
 }
