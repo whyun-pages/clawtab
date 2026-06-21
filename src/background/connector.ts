@@ -1,12 +1,16 @@
+import { ToolName } from '../ai/tools';
 import type {
   ChatMessage,
   ConnectorResult,
-  OpenClawConfig,
+  LlmConfig,
   PageSnapshot,
 } from '../shared/types';
-import { requestOpenClaw } from './openclaw-gateway';
+import { requestLlm, streamLlm } from './llm-gateway';
 import { decideSkill } from './skills';
+import type { LlmStreamDelta } from './think-tag-parser';
 
+type StreamDeltaHandler = (part: LlmStreamDelta) => void;
+export const MAX_HISTORY_LENGTH = 12;
 function scoreTab(tab: PageSnapshot, message: string): number {
   const haystack = `${tab.title}\n${tab.url}\n${tab.text}`.toLowerCase();
   return message
@@ -52,16 +56,24 @@ function buildSystemPrompt(
   relatedTabs: PageSnapshot[],
   userMessage: string,
 ): string {
-  const decision = decideSkill(userMessage);
-  const skillLine = decision.skill
-    ? `用户当前请求命中了 ${decision.skill} skill，原因：${decision.reason}`
-    : `用户当前请求未命中内置 skill，原因：${decision.reason}`;
+  // const decision = decideSkill(userMessage);
+  // const skillLine = decision.skill
+  //   ? `用户当前请求命中了 ${decision.skill} skill，原因：${decision.reason}`
+  //   : `用户当前请求未命中内置 skill，原因：${decision.reason}`;
 
   return [
     '你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。',
-    '你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据。',
-    '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
-    skillLine,
+    `你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据，如果没有找到相关标签页，
+你必须直接回复用户：没有找到相关标签页，请先打开网页或者刷新页面，待插件抓取完成后再提问。`,
+    `你可以使用工具 ${ToolName.TabSnapshotListIds} 获取当前可用标签页的 ID 列表，
+使用工具 ${ToolName.TabSnapshotGet} 获取指定标签页的详细内容。`,
+    `工具调用规则：
+1. 调用 ${ToolName.TabSnapshotGet} 时必须提供 tabId 字段，且 tabId 必须是数字。
+2. 如果你不知道应该读取哪个 tabId，必须先调用 ${ToolName.TabSnapshotListIds} 获取可用标签页 ID 列表。
+3. ${ToolName.TabSnapshotGet} 的 tabId 必须来自 ${ToolName.TabSnapshotListIds} 返回的 data 数组，不能省略、猜测或编造 tabId。
+4. 如果 ${ToolName.TabSnapshotListIds} 返回的 data 数组为空，必须终止当前工具调用流程，并直接回复用户：标签页数据为空，请刷新对应的标签后重试。`,
+    // '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
+    // skillLine,
     '',
     // '当前相关标签页：',
     // summarizeTabs(relatedTabs),
@@ -70,32 +82,36 @@ function buildSystemPrompt(
   ].join('\n');
 }
 
-function buildMissingConfigReply(relatedTabs: PageSnapshot[]): string {
+function buildMissingConfigReply(_relatedTabs: PageSnapshot[]): string {
   return [
-    '还没有配置 OpenClaw Gateway，暂时无法走真实 connector。',
-    '请在插件设置中填写 Base URL 和 Token。',
+    '还没有配置大模型接口，暂时无法发送真实请求。',
+    '请在插件设置中填写 Base URL 和 API Key。',
     '',
     // '当前可用标签页预览：',
     // summarizeTabs(relatedTabs),
     // '',
-    '默认 Base URL 可填：http://127.0.0.1:18789/v1',
+    // '默认 Base URL 可填：http://127.0.0.1:18789/v1',
   ].join('\n');
 }
 
-// function trimHistory(history: ChatMessage[]): ChatMessage[] {
-//   return history.slice(-12);
-// }
+function trimHistory(history: ChatMessage[]): ChatMessage[] {
+  return history.slice(-MAX_HISTORY_LENGTH).map((entry) => ({
+    id: entry.id,
+    role: entry.role,
+    content: entry.content,
+  }));
+}
 
 export async function runConnector(
   message: string,
   tabs: PageSnapshot[],
-  config: OpenClawConfig,
-  history: ChatMessage[],
+  config: LlmConfig,
+  _history: ChatMessage[],
 ): Promise<ConnectorResult> {
   const decision = decideSkill(message);
   const relatedTabs = selectRelatedTabs(message, tabs);
 
-  if (!config.baseUrl.trim() || !config.token.trim()) {
+  if (!config.baseUrl.trim() || !config.apiKey.trim()) {
     return {
       reply: buildMissingConfigReply(relatedTabs),
       decision,
@@ -110,7 +126,7 @@ export async function runConnector(
       role: 'system',
       content: buildSystemPrompt(relatedTabs, message),
     },
-    // ...trimHistory(history).filter((entry) => entry.role !== "system"),
+    ...trimHistory(_history).filter((entry) => entry.role !== 'system'),
     {
       id: crypto.randomUUID(),
       role: 'user',
@@ -118,10 +134,62 @@ export async function runConnector(
     },
   ];
 
-  const reply = await requestOpenClaw(config, gatewayMessages);
+  const reply = await requestLlm(config, gatewayMessages);
 
   return {
     reply,
+    decision,
+    relatedTabs,
+    mode: 'gateway',
+  };
+}
+
+export async function runConnectorStream(
+  message: string,
+  tabs: PageSnapshot[],
+  config: LlmConfig,
+  _history: ChatMessage[],
+  onDelta: StreamDeltaHandler,
+  abortSignal?: AbortSignal,
+): Promise<ConnectorResult> {
+  const decision = decideSkill(message);
+  const relatedTabs = selectRelatedTabs(message, tabs);
+
+  if (!config.baseUrl.trim() || !config.apiKey.trim()) {
+    const reply = buildMissingConfigReply(relatedTabs);
+    onDelta({
+      type: 'answer',
+      delta: reply,
+    });
+
+    return {
+      reply,
+      decision,
+      relatedTabs,
+      mode: 'config-required',
+    };
+  }
+
+  const gatewayMessages: ChatMessage[] = [
+    {
+      id: crypto.randomUUID(),
+      role: 'system',
+      content: buildSystemPrompt(relatedTabs, message),
+    },
+    ...trimHistory(_history).filter((entry) => entry.role !== 'system'),
+    {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: message,
+    },
+  ];
+
+  const result = await streamLlm(config, gatewayMessages, onDelta, abortSignal);
+
+  return {
+    reply: result.text,
+    reasoning: result.reasoning,
+    toolCalls: result.toolCalls,
     decision,
     relatedTabs,
     mode: 'gateway',

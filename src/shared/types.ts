@@ -17,14 +17,14 @@ export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  reasoning?: string;
+  toolCalls?: ToolStreamDelta[];
 }
 
-export interface OpenClawConfig {
+export interface LlmConfig {
   baseUrl: string;
-  token: string;
+  apiKey: string;
   model: string;
-  agentId: string;
-  sessionKey: string;
 }
 
 export interface SkillDecision {
@@ -34,6 +34,8 @@ export interface SkillDecision {
 
 export interface ConnectorResult {
   reply: string;
+  reasoning?: string;
+  toolCalls?: ToolStreamDelta[];
   decision: SkillDecision;
   relatedTabs: PageSnapshot[];
   mode: 'gateway' | 'config-required';
@@ -50,6 +52,107 @@ export interface SendChatResponse {
   history: ChatMessage[];
 }
 
+export const CHAT_STREAM_PORT = 'chat/stream';
+
+export type LlmStreamDeltaType = 'answer' | 'reasoning' | 'tool';
+
+export type ToolCallStreamDelta = {
+  event: 'call';
+  toolCallId: string;
+  toolName: string;
+  input: unknown;
+};
+
+export type ToolInputStartStreamDelta = {
+  event: 'input-start';
+  toolCallId: string;
+  toolName: string;
+};
+
+export type ToolInputDeltaStreamDelta = {
+  event: 'input-delta';
+  toolCallId: string;
+  toolName?: string;
+  delta: string;
+};
+
+export type ToolInputEndStreamDelta = {
+  event: 'input-end';
+  toolCallId: string;
+  toolName?: string;
+};
+
+export type ToolResultStreamDelta = {
+  event: 'result';
+  toolCallId: string;
+  toolName: string;
+  input: unknown;
+  output: unknown;
+};
+
+export type ToolErrorStreamDelta = {
+  event: 'error';
+  toolCallId: string;
+  toolName: string;
+  input: unknown;
+  error: unknown;
+};
+
+export type ToolStreamDelta =
+  | ToolCallStreamDelta
+  | ToolInputStartStreamDelta
+  | ToolInputDeltaStreamDelta
+  | ToolInputEndStreamDelta
+  | ToolResultStreamDelta
+  | ToolErrorStreamDelta;
+
+export interface ChatStreamStartMessage {
+  type: 'chat/stream:start';
+  requestId: string;
+  message: string;
+}
+
+export interface ChatStreamStartedMessage {
+  type: 'chat/stream:started';
+  requestId: string;
+  assistantMessageId: string;
+}
+
+export type ChatStreamDeltaMessage =
+  | {
+      type: 'chat/stream:delta';
+      requestId: string;
+      deltaType: 'answer' | 'reasoning';
+      delta: string;
+    }
+  | {
+      type: 'chat/stream:delta';
+      requestId: string;
+      deltaType: 'tool';
+      delta: ToolStreamDelta;
+    };
+
+export interface ChatStreamDoneMessage {
+  type: 'chat/stream:done';
+  requestId: string;
+  result: ConnectorResult;
+  history: ChatMessage[];
+}
+
+export interface ChatStreamErrorMessage {
+  type: 'chat/stream:error';
+  requestId: string;
+  message: string;
+}
+
+export type ChatStreamClientMessage = ChatStreamStartMessage;
+
+export type ChatStreamServerMessage =
+  | ChatStreamStartedMessage
+  | ChatStreamDeltaMessage
+  | ChatStreamDoneMessage
+  | ChatStreamErrorMessage;
+
 export interface GetChatStateRequest {
   type: 'chat/state:get';
 }
@@ -57,7 +160,7 @@ export interface GetChatStateRequest {
 export interface GetChatStateResponse {
   ok: true;
   history: ChatMessage[];
-  config: OpenClawConfig;
+  config: LlmConfig;
 }
 
 export interface ResetChatStateRequest {
@@ -66,12 +169,12 @@ export interface ResetChatStateRequest {
 
 export interface SaveConfigRequest {
   type: 'config/save';
-  config: OpenClawConfig;
+  config: LlmConfig;
 }
 
 export interface SaveConfigResponse {
   ok: true;
-  config: OpenClawConfig;
+  config: LlmConfig;
 }
 
 export interface GetConfigRequest {

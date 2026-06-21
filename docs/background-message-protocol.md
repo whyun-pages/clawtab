@@ -27,10 +27,14 @@
 - `config/get`
 - `config/save`
 
+同时通过 `chrome.runtime.onConnect` 暴露以下长连接：
+
+- `chat/stream`
+
 其中：
 
 - `content/snapshot` 主要由 `content script` 发送
-- 其余消息主要由 `popup` 发送
+- 其余消息和 `chat/stream` 主要由 `popup` 发送
 
 ## 设计约定
 
@@ -127,7 +131,7 @@
 
 处理流程：
 
-1. 读取 OpenClaw Gateway 配置
+1. 读取大模型配置
 2. 读取已有聊天历史
 3. 读取当前标签页快照列表
 4. 调用 `runConnector()`
@@ -155,12 +159,109 @@
 字段说明：
 
 - `result.reply`：最终返回给前端显示的文本
+- `result.reasoning`：可选，模型返回的思考内容
 - `result.decision`：skill 判定结果
 - `result.relatedTabs`：此次回答参考的相关标签页
 - `result.mode`：
-  - `gateway`：已成功走真实 OpenClaw Gateway
+  - `gateway`：已成功走真实大模型接口
   - `config-required`：未完成配置，返回的是引导文案
 - `history`：写入存储后的完整聊天历史
+
+### `chat/stream`
+
+用途：
+
+- 发起一次流式聊天请求
+- popup 可在大模型生成过程中持续收到 assistant 文本增量
+
+连接方式：
+
+```ts
+const port = chrome.runtime.connect({ name: "chat/stream" });
+```
+
+客户端首条消息：
+
+```ts
+{
+  type: "chat/stream:start",
+  requestId: string,
+  message: string
+}
+```
+
+服务端事件：
+
+```ts
+{
+  type: "chat/stream:started",
+  requestId: string,
+  assistantMessageId: string
+}
+```
+
+```ts
+{
+  type: "chat/stream:delta",
+  requestId: string,
+  deltaType: "answer" | "reasoning",
+  delta: string
+}
+```
+
+```ts
+{
+  type: "chat/stream:delta",
+  requestId: string,
+  deltaType: "tool",
+  delta:
+    | { event: "call", toolCallId: string, toolName: string, input: unknown }
+    | { event: "input-start", toolCallId: string, toolName: string }
+    | { event: "input-delta", toolCallId: string, toolName?: string, delta: string }
+    | { event: "input-end", toolCallId: string, toolName?: string }
+    | { event: "result", toolCallId: string, toolName: string, input: unknown, output: unknown }
+    | { event: "error", toolCallId: string, toolName: string, input: unknown, error: unknown }
+}
+```
+
+字段说明：
+
+- `deltaType: "answer"`：普通回答文本增量
+- `deltaType: "reasoning"`：思考过程文本增量
+- `deltaType: "tool"`：工具调用过程事件，`delta` 为结构化对象
+- 对支持标准 reasoning 事件的 provider，`reasoning` 来自模型的独立 reasoning 流
+- 对 MiniMax / 部分 OpenAI-compatible 模型，`reasoning` 可由 `<think>...</think>` 文本段解析得到
+
+```ts
+{
+  type: "chat/stream:done",
+  requestId: string,
+  result: ConnectorResult,
+  history: ChatMessage[]
+}
+```
+
+```ts
+{
+  type: "chat/stream:error",
+  requestId: string,
+  message: string
+}
+```
+
+处理流程：
+
+1. `popup` 建立 `chat/stream` Port 并发送 `chat/stream:start`
+2. `background` 读取配置、历史与当前标签页快照
+3. `background` 发送 `chat/stream:started`，返回本轮 assistant 消息 ID
+4. 大模型生成期间，`background` 多次发送 `chat/stream:delta`
+5. 完成后写入用户消息和完整 assistant 回复，并发送 `chat/stream:done`
+6. 如果请求失败，发送 `chat/stream:error`
+
+断开行为：
+
+- `popup` 主动断开 Port 时，`background` 会取消当前大模型请求
+- `chat/send` 仍保留为一次性响应兼容接口
 
 ### `chat/state:get`
 
@@ -192,7 +293,7 @@
 {
   ok: true,
   history: ChatMessage[],
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
@@ -230,20 +331,20 @@
 {
   ok: true,
   history: ChatMessage[],
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
 注意：
 
 - 当前只会清空聊天历史
-- 不会重置 OpenClaw 配置
+- 不会重置大模型配置
 
 ### `config/get`
 
 用途：
 
-- 读取当前 OpenClaw 配置
+- 读取当前大模型配置
 
 发送方：
 
@@ -263,7 +364,7 @@
 ```ts
 {
   ok: true,
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
@@ -271,7 +372,7 @@
 
 用途：
 
-- 保存 OpenClaw Gateway 配置
+- 保存大模型配置
 
 发送方：
 
@@ -284,10 +385,8 @@
   type: "config/save",
   config: {
     baseUrl: string,
-    token: string,
-    model: string,
-    agentId: string,
-    sessionKey: string
+    apiKey: string,
+    model: string
   }
 }
 ```
@@ -298,15 +397,13 @@
 2. 对配置做归一化：
    - 去掉 `baseUrl` 尾部斜杠
    - 缺省 `model` 时回退到默认值
-   - 缺省 `agentId` 时回退到默认值
-   - 缺省 `sessionKey` 时自动生成
 
 响应结构：
 
 ```ts
 {
   ok: true,
-  config: OpenClawConfig
+  config: LlmConfig
 }
 ```
 
@@ -344,22 +441,20 @@
 - `tabId` 仅在 `background` 端完整存在
 - `text` 是裁剪后的页面正文摘要
 
-### `OpenClawConfig`
+### `LlmConfig`
 
 ```ts
 {
   baseUrl: string,
-  token: string,
-  model: string,
-  agentId: string,
-  sessionKey: string
+  apiKey: string,
+  model: string
 }
 ```
 
 说明：
 
 - `baseUrl` 默认是 `http://127.0.0.1:18789/v1`
-- `token` 为空时，聊天不会真正访问 Gateway
+- `apiKey` 为空时，聊天不会真正访问大模型接口
 
 ## 调用示例
 
@@ -398,7 +493,7 @@ await chrome.runtime.sendMessage({
 
 - 暂无统一错误响应协议
 - 没有请求版本号字段
-- 没有请求 `id` 或 trace 信息
+- 一次性消息没有请求 `id` 或 trace 信息；流式聊天使用 `requestId`
 - `content/snapshot` 当前只上报轻量文本，不含结构化 DOM 信息
 - 尚未区分内部消息与潜在外部消息来源
 
@@ -406,5 +501,4 @@ await chrome.runtime.sendMessage({
 
 - 为响应补充统一错误结构，例如 `ok: false`、`code`、`message`
 - 在协议层加入版本字段，便于后续升级
-- 为 `chat/send` 增加可选的流式响应协议
-- 给消息增加 `requestId`，便于调试和日志追踪
+- 评估是否让更多一次性消息也携带 `requestId`，便于调试和日志追踪

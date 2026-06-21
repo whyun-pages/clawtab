@@ -1,14 +1,16 @@
-import type { ChatMessage, OpenClawConfig } from '../shared/types';
+import type { ChatMessage, LlmConfig } from '../shared/types';
 
-const CONFIG_KEY = 'openclaw-config';
+const CONFIG_KEY = 'llm-config';
 const HISTORY_KEY = 'chat-history';
 
-export const DEFAULT_OPENCLAW_CONFIG: OpenClawConfig = {
-  baseUrl: 'http://127.0.0.1:18789/v1',
-  token: '',
-  model: 'openclaw/default',
-  agentId: 'main',
-  sessionKey: `clawtab-${crypto.randomUUID()}`,
+type StoredLlmConfig = Partial<LlmConfig> & {
+  token?: string;
+};
+
+export const DEFAULT_LLM_CONFIG: LlmConfig = {
+  baseUrl: '',
+  apiKey: '',
+  model: '',
 };
 
 const DEFAULT_HISTORY: ChatMessage[] = [
@@ -16,27 +18,32 @@ const DEFAULT_HISTORY: ChatMessage[] = [
     id: crypto.randomUUID(),
     role: 'assistant',
     content:
-      '你好，我是 ClawTab。先在设置里填入 OpenClaw Gateway 地址和 Token，我就会通过真实的 OpenClaw connector 来回答你。',
+      '你好，我是 ClawTab。先在设置里填入大模型 Base URL 和 API Key，我就会通过真实的大模型接口来回答你。',
   },
 ];
 
-export async function getConfig(): Promise<OpenClawConfig> {
+export async function getConfig(): Promise<LlmConfig> {
   const stored = await chrome.storage.local.get(CONFIG_KEY);
+  const config = stored[CONFIG_KEY] as StoredLlmConfig | undefined;
+  const apiKey = config?.apiKey ?? config?.token ?? DEFAULT_LLM_CONFIG.apiKey;
+
   return {
-    ...DEFAULT_OPENCLAW_CONFIG,
-    ...(stored[CONFIG_KEY] as Partial<OpenClawConfig> | undefined),
+    baseUrl: asConfigString(config?.baseUrl, DEFAULT_LLM_CONFIG.baseUrl),
+    apiKey: asConfigString(apiKey, DEFAULT_LLM_CONFIG.apiKey),
+    model: asConfigString(config?.model, DEFAULT_LLM_CONFIG.model),
   };
 }
 
-export async function saveConfig(
-  config: OpenClawConfig,
-): Promise<OpenClawConfig> {
-  const normalized: OpenClawConfig = {
-    ...config,
-    baseUrl: config.baseUrl.replace(/\/+$/, ''),
-    model: config.model.trim() || DEFAULT_OPENCLAW_CONFIG.model,
-    agentId: config.agentId.trim() || DEFAULT_OPENCLAW_CONFIG.agentId,
-    sessionKey: config.sessionKey.trim() || `clawtab-${crypto.randomUUID()}`,
+export async function saveConfig(config: LlmConfig): Promise<LlmConfig> {
+  const normalized: LlmConfig = {
+    baseUrl: asConfigString(config.baseUrl, DEFAULT_LLM_CONFIG.baseUrl).replace(
+      /\/+$/,
+      '',
+    ),
+    apiKey: asConfigString(config.apiKey, DEFAULT_LLM_CONFIG.apiKey).trim(),
+    model:
+      asConfigString(config.model, DEFAULT_LLM_CONFIG.model).trim() ||
+      DEFAULT_LLM_CONFIG.model,
   };
 
   await chrome.storage.local.set({
@@ -64,4 +71,8 @@ export async function saveHistory(
 export async function resetHistory(): Promise<ChatMessage[]> {
   await chrome.storage.local.remove(HISTORY_KEY);
   return DEFAULT_HISTORY;
+}
+
+function asConfigString(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
 }

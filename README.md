@@ -7,7 +7,7 @@
 - TypeScript + ESM 工程
 - Manifest V3 Chrome 扩展骨架
 - `background` / `content script` / `popup` 三个入口
-- 简化版 openclaw connector 与内置 skills 调度规则
+- 简化版 LLM connector 与内置 skills 调度规则
 - `vitest` 单元测试
 - `playwright` 端到端测试脚手架
 
@@ -39,53 +39,27 @@ pnpm test:e2e
 ## 当前实现说明
 
 - `content script` 会抓取页面标题、URL 和正文片段并上报给 `background`
-- `popup` 提供聊天界面和 OpenClaw Gateway 配置表单
-- 当前真实接入的是 OpenClaw 的 OpenAI 兼容接口：`POST /v1/chat/completions`
+- `popup` 提供聊天界面和大模型配置表单
+- 当前真实接入 OpenAI-compatible Chat Completions 接口：`POST /v1/chat/completions`
 
-## OpenClaw Gateway 配置
+## 大模型配置
 
-需要先在 OpenClaw 侧启用 HTTP Chat Completions 接口，并准备 Gateway Token。
-
-典型配置项如下：
-
-```json
-{
-  "gateway": {
-    "http": {
-      "endpoints": {
-        "chatCompletions": {
-          "enabled": true
-        }
-      }
-    }
-  }
-}
-```
-
-插件中的默认连接参数：
-
-- Base URL: `http://127.0.0.1:18789/v1`
-- Model: `openclaw/default`
-- Agent ID: `main`
+需要准备兼容 OpenAI Chat Completions 的 Base URL、API Key 和模型名。
 
 ### 验证 chat completions 接口
 
-启用 Gateway 并拿到 Token 后，可对 `POST <Base URL>/chat/completions` 做冒烟测试。请求体与 OpenAI Chat Completions 一致（JSON：`model`、`messages`，其中每条为 `role` + `content`）。与插件行为一致（见 `src/background/openclaw-gateway.ts`），请求头建议同时包含：
+拿到 API Key 后，可对 `POST <Base URL>/chat/completions` 做冒烟测试。请求体与 OpenAI Chat Completions 一致（JSON：`model`、`messages`，其中每条为 `role` + `content`）。与插件行为一致（见 `src/background/llm-gateway.ts`），请求头包含：
 
-- `Authorization: Bearer <Gateway Token>`
-- `x-openclaw-agent-id`：与上方 Agent ID 一致（默认 `main`）
-- `x-openclaw-session-key`：任意字符串，用于同一会话上下文；插件侧会生成类似 `clawtab-<uuid>` 的值
+- `Authorization: Bearer <API Key>`
 
-将下面示例里的 `YOUR_TOKEN` 换成真实 Token。
+将下面示例里的 `YOUR_API_KEY` 换成真实 API Key。
 
 #### 使用 curl
 
 ```bash
 curl -sS -X POST "http://127.0.0.1:18789/v1/chat/completions" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -H "x-openclaw-agent-id: main" \
-  -H "x-openclaw-session-key: clawtab-dev-session" \
   -d '{
     "model": "openclaw/default",
     "messages": [
@@ -98,10 +72,8 @@ curl -sS -X POST "http://127.0.0.1:18789/v1/chat/completions" \
 
 ```bash
 curl -sS -N -X POST "http://127.0.0.1:18789/v1/chat/completions" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -H "x-openclaw-agent-id: main" \
-  -H "x-openclaw-session-key: clawtab-dev-session" \
   -d '{
     "model": "openclaw/default",
     "stream": true,
@@ -117,10 +89,8 @@ curl -sS -N -X POST "http://127.0.0.1:18789/v1/chat/completions" \
 
 ```powershell
 $headers = @{
-  Authorization = "Bearer YOUR_TOKEN"
+  Authorization = "Bearer YOUR_API_KEY"
   "Content-Type" = "application/json"
-  "x-openclaw-agent-id" = "main"
-  "x-openclaw-session-key" = "clawtab-dev-session"
 }
 
 $body = @{
@@ -138,8 +108,10 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:18789/v1/chat/completions"
 
 ## TODO
 
-- 为三类 skill 接入真实站点自动化与结构化提取
-- 在 `chrome.storage` 中持久化聊天历史与标签页快照
-- 完善真实的 Playwright 扩展加载与交互测试
-- `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
-- connector 会先判断是否命中 `shopping` / `social` / `video` skill，再把标签页摘要、skill 判定和会话历史一起发给 OpenClaw Gateway
+- [ ] connector 会先判断是否命中 `shopping` / `social` / `video` skill，再把标签页摘要、skill 判定和会话历史一起发给大模型接口
+- [ ] 完善真实的 Playwright 扩展加载与交互测试
+- [x] `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
+- [ ] 会话管理
+- [ ] 持久记忆
+- [x] markdown 渲染
+- [ ] 复制问题和答案

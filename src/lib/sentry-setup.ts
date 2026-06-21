@@ -35,6 +35,10 @@ if ('Proxy' in window) {
 
   window.Sentry = new Proxy({}, handler) as SentryModule;
 }
+export const ignoreErrors = [
+  'ResizeObserver loop completed with undelivered notifications.',
+  'ResizeObserver loop limit exceeded',
+];
 // filter integrations that use the global variable
 const integrations = getDefaultIntegrations({}).filter((defaultIntegration) => {
   return ![
@@ -52,10 +56,7 @@ const client = new BrowserClient({
   stackParser: defaultStackParser,
   integrations: integrations,
   // --- 添加以下配置 ---
-  ignoreErrors: [
-    'ResizeObserver loop completed with undelivered notifications.',
-    'ResizeObserver loop limit exceeded',
-  ],
+  ignoreErrors: ignoreErrors,
 });
 
 const scope = new Scope();

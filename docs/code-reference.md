@@ -13,7 +13,7 @@ clawtab/
 │  ├─ background/
 │  │  ├─ connector.ts
 │  │  ├─ index.ts
-│  │  ├─ openclawGateway.ts
+│  │  ├─ llm-gateway.ts
 │  │  ├─ skills.ts
 │  │  ├─ storage.ts
 │  │  └─ tabContentStore.ts
@@ -55,7 +55,7 @@ popup 的静态 HTML 壳。
 包含：
 
 - 标题区域
-- OpenClaw 配置表单
+- 大模型配置表单
 - 聊天消息容器
 - 聊天输入区
 
@@ -78,7 +78,7 @@ popup 的静态 HTML 壳。
 
 - 页面快照：`PageSnapshot`
 - 聊天消息：`ChatMessage`
-- OpenClaw 配置：`OpenClawConfig`
+- 大模型配置：`LlmConfig`
 - connector 结果：`ConnectorResult`
 - runtime message 协议
 
@@ -130,7 +130,7 @@ popup 的静态 HTML 壳。
 特点：
 
 - 对配置做了默认值和归一化处理
-- `sessionKey` 会在缺省时自动生成
+- 对 Base URL、API Key 和模型名做默认值与归一化处理
 
 ### `src/background/skills.ts`
 
@@ -146,14 +146,14 @@ popup 的静态 HTML 壳。
 - 当前主链路实际使用的是 `decideSkill()`
 - `runSkill()` 目前还未接入真实调用
 
-### `src/background/openclawGateway.ts`
+### `src/background/llm-gateway.ts`
 
-OpenClaw Gateway 的 HTTP 封装。
+OpenAI-compatible 大模型接口的 HTTP 封装。
 
 核心职责：
 
 - 调用 `/v1/chat/completions`
-- 设置认证和会话头
+- 设置认证头
 - 将统一的 `ChatMessage[]` 映射为 OpenAI 兼容请求格式
 - 解析返回文本
 - 抛出明确错误
@@ -168,7 +168,7 @@ connector 核心逻辑。
 2. 根据用户问题做 skill 判定
 3. 生成 system prompt
 4. 将最近一段聊天历史和当前问题拼成请求
-5. 调用 OpenClaw Gateway
+5. 调用大模型接口
 
 里面几个关键函数：
 
@@ -201,7 +201,7 @@ popup 交互主逻辑。
 
 - 初始化聊天历史和配置
 - 发送聊天请求
-- 保存 OpenClaw 配置
+- 保存大模型配置
 - 清空聊天历史
 - 渲染消息列表
 
@@ -251,7 +251,7 @@ Playwright 端到端测试脚手架。
 2. `src/shared/types.ts`
 3. `src/background/index.ts`
 4. `src/background/connector.ts`
-5. `src/background/openclawGateway.ts`
+5. `src/background/llm-gateway.ts`
 6. `src/content/index.ts`
 7. `src/popup/index.ts`
 8. `tests/connector.test.ts`
@@ -261,7 +261,7 @@ Playwright 端到端测试脚手架。
 - 消息协议
 - 页面数据从哪里来
 - 聊天请求如何发送
-- OpenClaw 是怎么接入的
+- 大模型接口是怎么接入的
 
 ## 改动入口建议
 
@@ -270,5 +270,5 @@ Playwright 端到端测试脚手架。
 - 想增强页面提取：改 `src/content/index.ts`
 - 想增强提示词和路由：改 `src/background/connector.ts`
 - 想接真实技能：改 `src/background/skills.ts`
-- 想改 OpenClaw 接口层：改 `src/background/openclawGateway.ts`
+- 想改大模型接口层：改 `src/background/llm-gateway.ts`
 - 想改 UI：改 `src/popup/index.ts` 和 `src/popup/styles.css`
