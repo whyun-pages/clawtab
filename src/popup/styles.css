@@ -95,6 +95,49 @@ body {
   white-space: pre-wrap;
 }
 
+.message__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.message__copy {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+}
+
+.message__copy:hover {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.message__copy[data-copy-state='success'] {
+  color: #16a34a;
+}
+
+.message__copy[data-copy-state='error'] {
+  color: #dc2626;
+}
+
+.message__copy-icon {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .message--assistant {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -102,6 +145,15 @@ body {
 
 .message--user {
   background: #2563eb;
+  color: #ffffff;
+}
+
+.message--user .message__copy {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.message--user .message__copy:hover {
+  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
 }
 

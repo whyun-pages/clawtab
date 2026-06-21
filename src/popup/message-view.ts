@@ -1,6 +1,7 @@
 import type { ChatMessage } from '../shared/types';
 import { messagesElement } from './dom';
 import { renderMarkdown } from './markdown-renderer';
+import { clearMessageCopyTexts, renderMessageCopyButton } from './message-copy';
 import { getToolRenderer } from './tools';
 import { escapeHtml } from './tools/render-utils';
 
@@ -9,6 +10,7 @@ export function renderMessages(history: ChatMessage[]): void {
     return;
   }
 
+  clearMessageCopyTexts();
   messagesElement.innerHTML = history
     .map((message) => renderMessage(message))
     .join('');
@@ -58,10 +60,11 @@ function renderMessage(message: ChatMessage): string {
     message.role === 'assistant'
       ? `<div class="message__markdown">${renderMarkdown(message.content)}</div>`
       : `<div class="message__plain">${escapeHtml(message.content)}</div>`;
+  const copyHtml = renderMessageCopyButton(message);
 
   return `<article class="${className}" data-message-id="${escapeHtml(
     message.id,
-  )}">${reasoningHtml}${toolCallsHtml}${contentHtml}</article>`;
+  )}">${reasoningHtml}${toolCallsHtml}${contentHtml}${copyHtml}</article>`;
 }
 
 function escapeCssAttributeValue(value: string): string {

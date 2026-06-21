@@ -16,9 +16,11 @@ import {
   setConfigStatus,
 } from './config-controller';
 import { formElement, inputElement, resetButton, submitButton } from './dom';
+import { bindMessageCopyActions } from './message-copy';
 import { renderMessages, renderRealtimeMessage } from './message-view';
 
 void bootstrap();
+bindMessageCopyActions();
 bindChatForm();
 bindResetButton();
 bindConfigForm((config) => {
