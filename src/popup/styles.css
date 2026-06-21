@@ -88,6 +88,10 @@ body {
   padding: 12px;
   border-radius: 12px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.message__plain {
   white-space: pre-wrap;
 }
 
@@ -118,6 +122,96 @@ body {
 
 .message__reasoning div {
   margin-top: 6px;
+  white-space: pre-wrap;
+}
+
+.message__markdown > :first-child {
+  margin-top: 0;
+}
+
+.message__markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.message__markdown p,
+.message__markdown ul,
+.message__markdown ol,
+.message__markdown blockquote,
+.message__markdown pre,
+.message__markdown table {
+  margin: 0 0 10px;
+}
+
+.message__markdown h1,
+.message__markdown h2,
+.message__markdown h3,
+.message__markdown h4,
+.message__markdown h5,
+.message__markdown h6 {
+  margin: 14px 0 8px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.message__markdown ul,
+.message__markdown ol {
+  padding-left: 20px;
+}
+
+.message__markdown li + li {
+  margin-top: 4px;
+}
+
+.message__markdown blockquote {
+  padding-left: 10px;
+  border-left: 3px solid #d1d5db;
+  color: #4b5563;
+}
+
+.message__markdown code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  font: 12px/1.45 Consolas, 'Liberation Mono', monospace;
+}
+
+.message__markdown pre {
+  overflow-x: auto;
+  padding: 10px;
+  border-radius: 8px;
+  background: #111827;
+  color: #f9fafb;
+}
+
+.message__markdown pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.message__markdown table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.message__markdown th,
+.message__markdown td {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  text-align: left;
+  vertical-align: top;
+}
+
+.message__markdown a {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.message__markdown input[type='checkbox'] {
+  margin-right: 6px;
+  vertical-align: -1px;
 }
 
 .message__tools {

@@ -36,6 +36,8 @@
     "@mozilla/readability": "^0.6.0",
     "@sentry/browser": "^10.51.0",
     "ai": "^6.0.159",
+    "dompurify": "^3.4.11",
+    "marked": "^18.0.5",
     "node-html-markdown": "^2.0.0",
     "zod": "^4.3.6"
   }

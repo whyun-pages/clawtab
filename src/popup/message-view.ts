@@ -1,5 +1,6 @@
 import type { ChatMessage } from '../shared/types';
 import { messagesElement } from './dom';
+import { renderMarkdown } from './markdown-renderer';
 import { getToolRenderer } from './tools';
 import { escapeHtml } from './tools/render-utils';
 
@@ -53,9 +54,14 @@ function renderMessage(message: ChatMessage): string {
     toolCallsHtml = renderToolCalls(message.toolCalls);
   }
 
+  const contentHtml =
+    message.role === 'assistant'
+      ? `<div class="message__markdown">${renderMarkdown(message.content)}</div>`
+      : `<div class="message__plain">${escapeHtml(message.content)}</div>`;
+
   return `<article class="${className}" data-message-id="${escapeHtml(
     message.id,
-  )}">${reasoningHtml}${escapeHtml(message.content)}${toolCallsHtml}</article>`;
+  )}">${reasoningHtml}${contentHtml}${toolCallsHtml}</article>`;
 }
 
 function escapeCssAttributeValue(value: string): string {
