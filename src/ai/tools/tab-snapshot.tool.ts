@@ -2,13 +2,15 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { getSnapshot, listTabIds } from '../../background/tab-content-store';
 import { defaultLogger } from '../../lib/logger';
+import {
+  tabSnapshotGetInputSchema,
+  tabSnapshotListIdsInputSchema,
+} from '../../shared/tool-schemas';
 
 export const tabSnapshotGetTool = tool({
   description:
     '根据指定标签页 ID 获取该标签页的快照信息，包括 URL、标题和文本内容。',
-  inputSchema: z.object({
-    tabId: z.number(),
-  }),
+  inputSchema: tabSnapshotGetInputSchema,
   outputSchema: z.object({
     data: z
       .object({
@@ -37,7 +39,7 @@ export const tabSnapshotGetTool = tool({
 
 export const tabSnapshotListIdsTool = tool({
   description: '获取所有标签页的 ID 列表。',
-  inputSchema: z.object({}),
+  inputSchema: tabSnapshotListIdsInputSchema,
   outputSchema: z.object({
     data: z.array(z.number()),
   }),

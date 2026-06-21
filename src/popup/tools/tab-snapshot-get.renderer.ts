@@ -1,17 +1,15 @@
-import type { ToolRenderer } from './types';
-import { renderToolInput } from './render-utils';
+import { AbstractToolRenderer } from './abstract-tool.renderer';
+import { tabSnapshotGetInputSchema } from '../../shared/tool-schemas';
 
-export const tabSnapshotGetRenderer: ToolRenderer = {
-  name: '获取标签快照',
-  render(delta) {
-    return renderToolInput('tabSnapshotGet', getToolInput(delta));
-  },
-};
+export class TabSnapshotGetRenderer extends AbstractToolRenderer {
+  public readonly name: string = '获取标签快照';
 
-function getToolInput(delta: Parameters<ToolRenderer['render']>[0]): unknown {
-  if ('input' in delta) {
-    return delta.input;
+  public get input(): string {
+    const result = tabSnapshotGetInputSchema.safeParse(this.rawInput);
+    if (!result.success) {
+      return this.formatInput(this.rawInput);
+    }
+
+    return result.data.tabId + '';
   }
-
-  return {};
 }

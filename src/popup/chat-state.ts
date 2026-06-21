@@ -1,8 +1,4 @@
-import type {
-  ChatMessage,
-  LlmConfig,
-  ToolStreamDelta,
-} from '../shared/types';
+import type { ChatMessage, LlmConfig, ToolStreamDelta } from '../shared/types';
 
 let history: ChatMessage[] = [];
 let currentConfig: LlmConfig | null = null;

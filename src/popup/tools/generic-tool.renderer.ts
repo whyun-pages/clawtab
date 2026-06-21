@@ -1,16 +1,11 @@
-import type { ToolRenderer } from './types';
-import { renderToolInput } from './render-utils';
+import { AbstractToolRenderer } from './abstract-tool.renderer';
 
-export const genericToolRenderer: ToolRenderer = {
-  render(delta) {
-    return renderToolInput(delta.toolName ?? 'unknown', getToolInput(delta));
-  },
-};
-
-function getToolInput(delta: Parameters<ToolRenderer['render']>[0]): unknown {
-  if ('input' in delta) {
-    return delta.input;
+export class GenericToolRenderer extends AbstractToolRenderer {
+  public override get name(): string {
+    return this.toolStreamDelta.toolName ?? 'unknown';
   }
 
-  return {};
+  public get input(): string {
+    return this.formatInput(this.rawInput);
+  }
 }

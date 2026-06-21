@@ -1,20 +1,9 @@
-import type { ToolRenderer } from './types';
-import { renderToolInput } from './render-utils';
+import { AbstractToolRenderer } from './abstract-tool.renderer';
 
-export const tabSnapshotListIdsRenderer: ToolRenderer = {
-  name: '获取标签快照列表',
-  render(delta) {
-    return renderToolInput('tabSnapshotListIds', getToolInput(delta));
-  },
-  get input() {
+export class TabSnapshotListIdsRenderer extends AbstractToolRenderer {
+  public readonly name: string = '获取标签快照列表';
+
+  public get input(): string {
     return '';
-  },
-};
-
-function getToolInput(delta: Parameters<ToolRenderer['render']>[0]): unknown {
-  if ('input' in delta) {
-    return delta.input;
   }
-
-  return {};
 }

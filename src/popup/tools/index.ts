@@ -1,30 +1,32 @@
 import type { ToolStreamDelta } from '../../shared/types';
-import { genericToolRenderer } from './generic-tool.renderer';
-import { tabSnapshotGetRenderer } from './tab-snapshot-get.renderer';
-import { tabSnapshotListIdsRenderer } from './tab-snapshot-list-ids.renderer';
-import type { ToolRenderer } from './types';
+import { AbstractToolRenderer } from './abstract-tool.renderer';
+import { GenericToolRenderer } from './generic-tool.renderer';
+import { TabSnapshotGetRenderer } from './tab-snapshot-get.renderer';
+import { TabSnapshotListIdsRenderer } from './tab-snapshot-list-ids.renderer';
 
-const toolRenderers: Record<string, ToolRenderer> = {
-  tabSnapshotGet: tabSnapshotGetRenderer,
-  tabSnapshotListIds: tabSnapshotListIdsRenderer,
+type ToolRendererConstructor = new (
+  delta: ToolStreamDelta,
+) => AbstractToolRenderer;
+
+const toolRenderers: Record<string, ToolRendererConstructor> = {
+  tabSnapshotGet: TabSnapshotGetRenderer,
+  tabSnapshotListIds: TabSnapshotListIdsRenderer,
 };
 
-export function getToolRenderer(delta: ToolStreamDelta): ToolRenderer {
+export function getToolRenderer(delta: ToolStreamDelta): AbstractToolRenderer {
   if (!('toolName' in delta)) {
-    return genericToolRenderer;
+    return new GenericToolRenderer(delta);
   }
 
   const toolName = delta.toolName;
   if (!toolName) {
-    return genericToolRenderer;
+    return new GenericToolRenderer(delta);
   }
 
-  const renderer = toolRenderers[toolName];
-  if (renderer) {
-    return renderer;
+  const Renderer = toolRenderers[toolName];
+  if (Renderer) {
+    return new Renderer(delta);
   }
 
-  return genericToolRenderer;
+  return new GenericToolRenderer(delta);
 }
-
-export type { ToolRenderer };

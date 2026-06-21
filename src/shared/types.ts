@@ -56,43 +56,55 @@ export const CHAT_STREAM_PORT = 'chat/stream';
 
 export type LlmStreamDeltaType = 'answer' | 'reasoning' | 'tool';
 
+export type ToolCallStreamDelta = {
+  event: 'call';
+  toolCallId: string;
+  toolName: string;
+  input: unknown;
+};
+
+export type ToolInputStartStreamDelta = {
+  event: 'input-start';
+  toolCallId: string;
+  toolName: string;
+};
+
+export type ToolInputDeltaStreamDelta = {
+  event: 'input-delta';
+  toolCallId: string;
+  toolName?: string;
+  delta: string;
+};
+
+export type ToolInputEndStreamDelta = {
+  event: 'input-end';
+  toolCallId: string;
+  toolName?: string;
+};
+
+export type ToolResultStreamDelta = {
+  event: 'result';
+  toolCallId: string;
+  toolName: string;
+  input: unknown;
+  output: unknown;
+};
+
+export type ToolErrorStreamDelta = {
+  event: 'error';
+  toolCallId: string;
+  toolName: string;
+  input: unknown;
+  error: unknown;
+};
+
 export type ToolStreamDelta =
-  | {
-      event: 'call';
-      toolCallId: string;
-      toolName: string;
-      input: unknown;
-    }
-  | {
-      event: 'input-start';
-      toolCallId: string;
-      toolName: string;
-    }
-  | {
-      event: 'input-delta';
-      toolCallId: string;
-      toolName?: string;
-      delta: string;
-    }
-  | {
-      event: 'input-end';
-      toolCallId: string;
-      toolName?: string;
-    }
-  | {
-      event: 'result';
-      toolCallId: string;
-      toolName: string;
-      input: unknown;
-      output: unknown;
-    }
-  | {
-      event: 'error';
-      toolCallId: string;
-      toolName: string;
-      input: unknown;
-      error: unknown;
-    };
+  | ToolCallStreamDelta
+  | ToolInputStartStreamDelta
+  | ToolInputDeltaStreamDelta
+  | ToolInputEndStreamDelta
+  | ToolResultStreamDelta
+  | ToolErrorStreamDelta;
 
 export interface ChatStreamStartMessage {
   type: 'chat/stream:start';

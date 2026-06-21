@@ -66,6 +66,11 @@ function buildSystemPrompt(
     '你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据。',
     `你可以使用工具 ${ToolName.TabSnapshotListIds} 获取当前可用标签页的 ID 列表，
 使用工具 ${ToolName.TabSnapshotGet} 获取指定标签页的详细内容。`,
+    `工具调用规则：
+1. 调用 ${ToolName.TabSnapshotGet} 时必须提供 tabId 字段，且 tabId 必须是数字。
+2. 如果你不知道应该读取哪个 tabId，必须先调用 ${ToolName.TabSnapshotListIds} 获取可用标签页 ID 列表。
+3. ${ToolName.TabSnapshotGet} 的 tabId 必须来自 ${ToolName.TabSnapshotListIds} 返回的 data 数组，不能省略、猜测或编造 tabId。
+4. 如果 ${ToolName.TabSnapshotListIds} 返回的 data 数组为空，必须终止当前工具调用流程，并直接回复用户：标签页数据为空，请刷新对应的标签后重试。`,
     // '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
     // skillLine,
     '',
@@ -89,7 +94,11 @@ function buildMissingConfigReply(_relatedTabs: PageSnapshot[]): string {
 }
 
 function trimHistory(history: ChatMessage[]): ChatMessage[] {
-  return history.slice(-MAX_HISTORY_LENGTH);
+  return history.slice(-MAX_HISTORY_LENGTH).map((entry) => ({
+    id: entry.id,
+    role: entry.role,
+    content: entry.content,
+  }));
 }
 
 export async function runConnector(

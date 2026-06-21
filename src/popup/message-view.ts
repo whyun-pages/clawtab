@@ -15,6 +15,25 @@ export function renderMessages(history: ChatMessage[]): void {
   messagesElement.scrollTop = messagesElement.scrollHeight;
 }
 
+export function renderRealtimeMessage(message: ChatMessage): void {
+  if (!messagesElement) {
+    return;
+  }
+
+  const html = renderMessage(message);
+  const existingMessage = messagesElement.querySelector(
+    `[data-message-id="${escapeCssAttributeValue(message.id)}"]`,
+  );
+
+  if (existingMessage) {
+    existingMessage.outerHTML = html;
+  } else {
+    messagesElement.insertAdjacentHTML('beforeend', html);
+  }
+
+  messagesElement.scrollTop = messagesElement.scrollHeight;
+}
+
 function renderMessage(message: ChatMessage): string {
   let roleClass = 'assistant';
   if (message.role === 'user') {
@@ -34,16 +53,23 @@ function renderMessage(message: ChatMessage): string {
     toolCallsHtml = renderToolCalls(message.toolCalls);
   }
 
-  return `<article class="${className}">${reasoningHtml}${escapeHtml(
-    message.content,
-  )}${toolCallsHtml}</article>`;
+  return `<article class="${className}" data-message-id="${escapeHtml(
+    message.id,
+  )}">${reasoningHtml}${escapeHtml(message.content)}${toolCallsHtml}</article>`;
+}
+
+function escapeCssAttributeValue(value: string): string {
+  return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
 }
 
 function renderToolCalls(
   toolCalls: NonNullable<ChatMessage['toolCalls']>,
 ): string {
   const items = toolCalls
-    .map((toolCall) => getToolRenderer(toolCall).render(toolCall))
+    .filter(
+      (toolCall) => toolCall.event === 'result' || toolCall.event === 'error',
+    )
+    .map((toolCall) => getToolRenderer(toolCall).render())
     .join('');
 
   return `<div class="message__tools">${items}</div>`;

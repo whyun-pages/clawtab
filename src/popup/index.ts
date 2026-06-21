@@ -7,16 +7,7 @@ import type {
   GetChatStateResponse,
   ResetChatStateRequest,
 } from '../shared/types';
-import {
-  appendMessage,
-  appendMessageToolCall,
-  getHistory,
-  replaceMessageId,
-  setConfig,
-  setHistory,
-  updateMessage,
-  updateMessageReasoning,
-} from './chat-state';
+import { getHistory, setConfig, setHistory } from './chat-state';
 import { startChatStream, stopChatStream } from './chat-stream-controller';
 import {
   bindConfigForm,
@@ -25,7 +16,7 @@ import {
   setConfigStatus,
 } from './config-controller';
 import { formElement, inputElement, resetButton, submitButton } from './dom';
-import { renderMessages } from './message-view';
+import { renderMessages, renderRealtimeMessage } from './message-view';
 
 void bootstrap();
 bindChatForm();
@@ -45,13 +36,9 @@ function bindChatForm(): void {
 
     inputElement.value = '';
     startChatStream(message, {
-      appendMessage,
-      appendMessageToolCall,
-      replaceMessageId,
       setHistory,
-      updateMessage,
-      updateMessageReasoning,
-      render,
+      renderHistory: render,
+      renderRealtimeMessage,
       setSubmitting,
     });
   });

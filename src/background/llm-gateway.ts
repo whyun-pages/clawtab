@@ -8,11 +8,7 @@ import { generateText, stepCountIs, streamText } from 'ai';
 
 import { gatewayTools, GatewayTools } from '../ai/tools';
 import { defaultLogger } from '../lib/logger';
-import type {
-  ChatMessage,
-  LlmConfig,
-  ToolStreamDelta,
-} from '../shared/types';
+import type { ChatMessage, LlmConfig, ToolStreamDelta } from '../shared/types';
 import type { LlmStreamDelta } from './think-tag-parser';
 import { ThinkTagParser } from './think-tag-parser';
 
@@ -46,7 +42,7 @@ function buildGatewayOptions(
       content: message.content,
     })),
     tools: gatewayTools,
-    toolChoice: 'required' as const,
+    toolChoice: 'auto' as const,
     stopWhen: stepCountIs(5),
     abortSignal,
     experimental_onToolCallStart: ({

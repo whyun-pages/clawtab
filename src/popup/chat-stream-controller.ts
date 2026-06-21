@@ -7,32 +7,15 @@ import type {
 import { CHAT_STREAM_PORT } from '../shared/types';
 
 interface ChatStreamContext {
-  appendMessage(
-    role: ChatMessage['role'],
-    content: string,
-    id?: string,
-  ): ChatMessage;
-  replaceMessageId(previousId: string | null, nextId: string): void;
   setHistory(history: ChatMessage[]): void;
-  updateMessage(
-    messageId: string | null,
-    updater: (currentContent: string) => string,
-  ): void;
-  updateMessageReasoning(
-    messageId: string | null,
-    updater: (currentReasoning: string) => string,
-  ): void;
-  appendMessageToolCall(
-    messageId: string | null,
-    toolCall: ToolStreamDelta,
-  ): void;
-  render(): void;
+  renderHistory(): void;
+  renderRealtimeMessage(message: ChatMessage): void;
   setSubmitting(isSubmitting: boolean): void;
 }
 
 let activePort: chrome.runtime.Port | null = null;
 let activeRequestId: string | null = null;
-let activeAssistantMessageId: string | null = null;
+let activeAssistantMessage: ChatMessage | null = null;
 
 export function startChatStream(
   message: string,
@@ -41,14 +24,22 @@ export function startChatStream(
   stopChatStream();
 
   const requestId = crypto.randomUUID();
+  const userMessageId = crypto.randomUUID();
   const assistantMessageId = crypto.randomUUID();
   activeRequestId = requestId;
-  activeAssistantMessageId = assistantMessageId;
+  activeAssistantMessage = {
+    id: assistantMessageId,
+    role: 'assistant',
+    content: '',
+  };
   context.setSubmitting(true);
 
-  context.appendMessage('user', message);
-  context.appendMessage('assistant', '', assistantMessageId);
-  context.render();
+  context.renderRealtimeMessage({
+    id: userMessageId,
+    role: 'user',
+    content: message,
+  });
+  context.renderRealtimeMessage(activeAssistantMessage);
 
   const port = chrome.runtime.connect({ name: CHAT_STREAM_PORT });
   activePort = port;
@@ -88,44 +79,43 @@ function handleStreamMessage(
   }
 
   if (message.type === 'chat/stream:started') {
-    context.replaceMessageId(
-      activeAssistantMessageId,
-      message.assistantMessageId,
-    );
-    activeAssistantMessageId = message.assistantMessageId;
     return;
   }
 
   if (message.type === 'chat/stream:delta') {
+    if (!activeAssistantMessage) {
+      return;
+    }
+
     if (message.deltaType === 'reasoning') {
-      context.updateMessageReasoning(
-        activeAssistantMessageId,
-        (reasoning) => reasoning + message.delta,
-      );
+      activeAssistantMessage.reasoning =
+        (activeAssistantMessage.reasoning ?? '') + message.delta;
     } else if (message.deltaType === 'answer') {
-      context.updateMessage(
-        activeAssistantMessageId,
-        (content) => content + message.delta,
-      );
+      activeAssistantMessage.content += message.delta;
     } else if (message.deltaType === 'tool') {
       if (isCompletedToolCall(message.delta)) {
-        context.appendMessageToolCall(activeAssistantMessageId, message.delta);
+        activeAssistantMessage.toolCalls = [
+          ...(activeAssistantMessage.toolCalls ?? []),
+          message.delta,
+        ];
       }
     }
-    context.render();
+    context.renderRealtimeMessage(activeAssistantMessage);
     return;
   }
 
   if (message.type === 'chat/stream:done') {
     context.setHistory(message.history);
-    context.render();
+    context.renderHistory();
     stopChatStream();
     context.setSubmitting(false);
     return;
   }
 
-  context.updateMessage(activeAssistantMessageId, () => message.message);
-  context.render();
+  if (activeAssistantMessage) {
+    activeAssistantMessage.content = message.message;
+    context.renderRealtimeMessage(activeAssistantMessage);
+  }
   stopChatStream();
   context.setSubmitting(false);
 }
@@ -133,7 +123,7 @@ function handleStreamMessage(
 function clearActiveStream(): void {
   activePort = null;
   activeRequestId = null;
-  activeAssistantMessageId = null;
+  activeAssistantMessage = null;
 }
 
 function isCompletedToolCall(
