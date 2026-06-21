@@ -108,11 +108,10 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:18789/v1/chat/completions"
 
 ## TODO
 
-- [ ] 为三类 skill 接入真实站点自动化与结构化提取
-- [ ] 在 `chrome.storage` 中持久化聊天历史与标签页快照
-- [ ] 完善真实的 Playwright 扩展加载与交互测试
-- [ ] `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
 - [ ] connector 会先判断是否命中 `shopping` / `social` / `video` skill，再把标签页摘要、skill 判定和会话历史一起发给大模型接口
+- [ ] 完善真实的 Playwright 扩展加载与交互测试
+- [x] `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
 - [ ] 会话管理
 - [ ] 持久记忆
-- [ ] markdown 渲染
+- [x] markdown 渲染
+- [ ] 复制问题和答案

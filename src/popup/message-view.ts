@@ -61,7 +61,7 @@ function renderMessage(message: ChatMessage): string {
 
   return `<article class="${className}" data-message-id="${escapeHtml(
     message.id,
-  )}">${reasoningHtml}${contentHtml}${toolCallsHtml}</article>`;
+  )}">${reasoningHtml}${toolCallsHtml}${contentHtml}</article>`;
 }
 
 function escapeCssAttributeValue(value: string): string {
