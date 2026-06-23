@@ -2,8 +2,7 @@
 
 ## Required before upload
 
-- [ ] Build production extension with `pnpm build`.
-- [ ] Create ZIP from the contents of `dist/`.
+- [ ] Build production extension and create the store ZIP with `pnpm package:chrome`.
 - [ ] Confirm `dist/manifest.json` contains correct `icons` and `action.default_icon`.
 - [ ] Confirm `dist/icons/icon16.png`, `icon32.png`, `icon48.png`, and `icon128.png` exist.
 - [ ] Decide whether source maps should be included in the release package.
@@ -41,4 +40,3 @@
 - [ ] Capture screenshots from a clean Chrome profile.
 - [ ] Confirm icon appears clearly at 16x16 and 32x32.
 - [ ] Consider narrowing `<all_urls>` if the product can work with a smaller host permission scope.
-

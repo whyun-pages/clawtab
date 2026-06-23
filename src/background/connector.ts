@@ -65,13 +65,13 @@ function buildSystemPrompt(
     '你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。',
     `你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据，如果没有找到相关标签页，
 你必须直接回复用户：没有找到相关标签页，请先打开网页或者刷新页面，待插件抓取完成后再提问。`,
-    `你可以使用工具 ${ToolName.TabSnapshotListIds} 获取当前可用标签页的 ID 列表，
+    `你可以使用工具 ${ToolName.TabSnapshotListBasicTool} 获取当前所有打开标签页的 链接 和 标题组成的列表，
 使用工具 ${ToolName.TabSnapshotGet} 获取指定标签页的详细内容。`,
     `工具调用规则：
-1. 调用 ${ToolName.TabSnapshotGet} 时必须提供 tabId 字段，且 tabId 必须是数字。
-2. 如果你不知道应该读取哪个 tabId，必须先调用 ${ToolName.TabSnapshotListIds} 获取可用标签页 ID 列表。
-3. ${ToolName.TabSnapshotGet} 的 tabId 必须来自 ${ToolName.TabSnapshotListIds} 返回的 data 数组，不能省略、猜测或编造 tabId。
-4. 如果 ${ToolName.TabSnapshotListIds} 返回的 data 数组为空，必须终止当前工具调用流程，并直接回复用户：标签页数据为空，请刷新对应的标签后重试。`,
+1. 调用 ${ToolName.TabSnapshotGet} 时必须提供 tabUrl 字段。
+2. 如果你不知道应该读取哪个 tabUrl，必须先调用 ${ToolName.TabSnapshotListBasicTool} 获取可用标签页 URL 列表。
+3. ${ToolName.TabSnapshotGet} 的 tabUrl 必须来自 ${ToolName.TabSnapshotListBasicTool} 返回的 data 数组，不能省略、猜测或编造 tabUrl。
+4. 如果 ${ToolName.TabSnapshotListBasicTool} 返回的 data 数组为空，必须终止当前工具调用流程，并直接回复用户：标签页数据为空，请刷新对应的标签后重试。`,
     // '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
     // skillLine,
     '',

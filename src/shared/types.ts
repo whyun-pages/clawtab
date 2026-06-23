@@ -1,11 +1,13 @@
 export type SkillName = 'shopping' | 'social' | 'video';
 
 export type TabId = number;
-
-export interface PageSnapshot {
-  tabId: TabId;
+export type TabUrl = string;
+export interface PageSnapshotBasicInfo {
   url: string;
   title: string;
+}
+export interface PageSnapshot extends PageSnapshotBasicInfo {
+  tabId: TabId;
   text: string;
   updatedAt: number;
   videoUrl?: string;
