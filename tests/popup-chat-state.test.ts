@@ -15,7 +15,7 @@ describe('popup chat state', () => {
       event: 'result',
       toolCallId: 'call-1',
       toolName: 'tabSnapshotGet',
-      input: { tabId: 1 },
+      input: { tabUrl: 'https://example.com/shop' },
       output: { data: null },
     });
 
@@ -29,7 +29,7 @@ describe('popup chat state', () => {
             event: 'result',
             toolCallId: 'call-1',
             toolName: 'tabSnapshotGet',
-            input: { tabId: 1 },
+            input: { tabUrl: 'https://example.com/shop' },
             output: { data: null },
           },
         ],

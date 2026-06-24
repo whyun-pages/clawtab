@@ -61,46 +61,82 @@ describe('popup message view', () => {
     vi.useRealTimers();
   });
 
-  it('renders completed tool call inputs inside assistant messages', async () => {
+  it(
+    'renders completed tool call inputs inside assistant messages',
+    async () => {
+      const { renderMessages } = await import('../src/popup/message-view');
+      const history: ChatMessage[] = [
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          content: '回答',
+          toolCalls: [
+            {
+              event: 'result',
+              toolCallId: 'call-1',
+              toolName: 'tabSnapshotGet',
+              input: {
+                tabUrl: 'https://example.com/shop',
+                unsafe: '<script>',
+              },
+              output: { data: null },
+            },
+          ],
+        },
+      ];
+
+      renderMessages(history);
+
+      expect(domMock.messagesElement.innerHTML).toContain(
+        'data-message-id="assistant-1"',
+      );
+      expect(domMock.messagesElement.innerHTML).toContain(
+        '工具调用：获取标签快照',
+      );
+      expect(domMock.messagesElement.innerHTML).toContain(
+        '<div class="message__tool-label">输入</div>',
+      );
+      expect(domMock.messagesElement.innerHTML).toContain(
+        '<pre class="message__tool-input">https://example.com/shop</pre>',
+      );
+      expect(domMock.messagesElement.innerHTML).toContain(
+        '<div class="message__tool-label">输出</div>',
+      );
+      expect(domMock.messagesElement.innerHTML).not.toContain(
+        '&quot;tabUrl&quot;',
+      );
+      expect(domMock.messagesElement.innerHTML).not.toContain('&lt;script&gt;');
+    },
+    10_000,
+  );
+
+  it('renders tool calls above assistant reasoning', async () => {
     const { renderMessages } = await import('../src/popup/message-view');
-    const history: ChatMessage[] = [
+
+    renderMessages([
       {
-        id: 'assistant-1',
+        id: 'assistant-order',
         role: 'assistant',
         content: '回答',
+        reasoning: '先分析',
         toolCalls: [
           {
             event: 'result',
             toolCallId: 'call-1',
-            toolName: 'tabSnapshotGet',
-            input: { tabId: 1, unsafe: '<script>' },
-            output: { data: null },
+            toolName: 'tabSnapshotListBasicTool',
+            input: {},
+            output: { data: [] },
           },
         ],
       },
-    ];
+    ]);
 
-    renderMessages(history);
-
-    expect(domMock.messagesElement.innerHTML).toContain(
-      'data-message-id="assistant-1"',
+    const html = domMock.messagesElement.innerHTML;
+    expect(html.indexOf('message__tools')).toBeGreaterThanOrEqual(0);
+    expect(html.indexOf('message__reasoning')).toBeGreaterThanOrEqual(0);
+    expect(html.indexOf('message__tools')).toBeLessThan(
+      html.indexOf('message__reasoning'),
     );
-    expect(domMock.messagesElement.innerHTML).toContain(
-      '工具调用：获取标签快照',
-    );
-    expect(domMock.messagesElement.innerHTML).toContain(
-      '<div class="message__tool-label">输入</div>',
-    );
-    expect(domMock.messagesElement.innerHTML).toContain(
-      '<pre class="message__tool-input">1</pre>',
-    );
-    expect(domMock.messagesElement.innerHTML).toContain(
-      '<div class="message__tool-label">输出</div>',
-    );
-    expect(domMock.messagesElement.innerHTML).not.toContain(
-      '&quot;tabId&quot;',
-    );
-    expect(domMock.messagesElement.innerHTML).not.toContain('&lt;script&gt;');
   });
 
   it('renders copy buttons for non-empty user and assistant content only', async () => {

@@ -1,3 +1,4 @@
+import { ToolName } from '../../ai/tools';
 import type { ToolStreamDelta } from '../../shared/types';
 import { AbstractToolRenderer } from './abstract-tool.renderer';
 import { GenericToolRenderer } from './generic-tool.renderer';
@@ -8,9 +9,9 @@ type ToolRendererConstructor = new (
   delta: ToolStreamDelta,
 ) => AbstractToolRenderer;
 
-const toolRenderers: Record<string, ToolRendererConstructor> = {
+const toolRenderers: Record<ToolName, ToolRendererConstructor> = {
   tabSnapshotGet: TabSnapshotGetRenderer,
-  tabSnapshotListIds: TabSnapshotListIdsRenderer,
+  tabSnapshotListBasicTool: TabSnapshotListIdsRenderer,
 };
 
 export function getToolRenderer(delta: ToolStreamDelta): AbstractToolRenderer {
@@ -23,7 +24,7 @@ export function getToolRenderer(delta: ToolStreamDelta): AbstractToolRenderer {
     return new GenericToolRenderer(delta);
   }
 
-  const Renderer = toolRenderers[toolName];
+  const Renderer = toolRenderers[toolName as ToolName];
   if (Renderer) {
     return new Renderer(delta);
   }

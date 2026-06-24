@@ -269,7 +269,7 @@ body {
 .message__tools {
   display: grid;
   gap: 8px;
-  margin-top: 10px;
+  margin: 0 0 10px;
 }
 
 .message__tool-call {

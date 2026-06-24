@@ -8,11 +8,11 @@ export const contentSnapshotHandler: BackgroundMessageHandler<
   RuntimeHandlerContext
 > = {
   type: 'content/snapshot',
-  process(message, context) {
+  async process(message, context) {
     const tabId = context.sender.tab?.id;
 
     if (typeof tabId === 'number') {
-      upsertSnapshot({
+      await upsertSnapshot({
         tabId,
         ...message.snapshot,
       });

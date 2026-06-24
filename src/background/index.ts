@@ -12,10 +12,21 @@ import {
   getRuntimeMessageHandler,
   getStreamMessageHandler,
 } from './handlers/factory';
-import { removeSnapshot } from './tab-content-store';
+import {
+  loadSnapshotsFromLocalStorage,
+  removeSnapshot,
+} from './tab-content-store';
 
 chrome.runtime.onInstalled.addListener(() => {
   defaultLogger.info('ClawTab installed.');
+  void loadSnapshotsFromLocalStorage().catch((error) => {
+    defaultLogger.error('Failed to load snapshots from local storage.', error);
+  });
+});
+chrome.runtime.onStartup.addListener(() => {
+  void loadSnapshotsFromLocalStorage().catch((error) => {
+    defaultLogger.error('Failed to load snapshots from local storage.', error);
+  });
 });
 
 // 异步分支需 return true 并保持 sendResponse 在异步完成后调用，否则通道会提前关闭。
@@ -70,7 +81,12 @@ chrome.runtime.onConnect.addListener((port) => {
 
 // 标签关闭后清理对应快照，避免内存与存储泄漏。
 chrome.tabs.onRemoved.addListener((tabId) => {
-  removeSnapshot(tabId);
+  removeSnapshot(tabId).catch((error) => {
+    defaultLogger.error(
+      `Failed to remove snapshot for tabId: ${tabId} on tab close.`,
+      error,
+    );
+  });
 });
 
 function postToPort(

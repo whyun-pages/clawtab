@@ -10,6 +10,6 @@ export class TabSnapshotGetRenderer extends AbstractToolRenderer {
       return this.formatInput(this.rawInput);
     }
 
-    return result.data.tabId + '';
+    return result.data.tabUrl;
   }
 }

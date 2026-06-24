@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runConnector, runConnectorStream } from '../src/background/connector';
 import { decideSkill } from '../src/background/skills';
 import {
@@ -39,6 +39,46 @@ const history: ChatMessage[] = [
   },
 ];
 
+const chromeLocalStorageMock = vi.hoisted(() => {
+  const values: Record<string, unknown> = {};
+  return {
+    values,
+    get: vi.fn(async (key: string | string[] | null) => {
+      if (key === null) {
+        return { ...values };
+      }
+
+      if (Array.isArray(key)) {
+        return Object.fromEntries(
+          key
+            .filter((itemKey) =>
+              Object.prototype.hasOwnProperty.call(values, itemKey),
+            )
+            .map((itemKey) => [itemKey, values[itemKey]]),
+        );
+      }
+
+      return Object.prototype.hasOwnProperty.call(values, key)
+        ? { [key]: values[key] }
+        : {};
+    }),
+    set: vi.fn(async (items: Record<string, unknown>) => {
+      Object.assign(values, items);
+    }),
+    remove: vi.fn(async (key: string | string[]) => {
+      for (const itemKey of Array.isArray(key) ? key : [key]) {
+        delete values[itemKey];
+      }
+    }),
+  };
+});
+
+vi.stubGlobal('chrome', {
+  storage: {
+    local: chromeLocalStorageMock,
+  },
+});
+
 function createSseResponse(chunks: unknown[]): Response {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -67,11 +107,59 @@ function requestBodyAsString(body: BodyInit | null | undefined): string {
   throw new Error(`Expected request body to be a string, got ${typeof body}`);
 }
 
-afterEach(() => {
-  vi.restoreAllMocks();
-  for (const tab of tabs) {
-    removeSnapshot(tab.tabId);
+beforeEach(() => {
+  for (const key of Object.keys(chromeLocalStorageMock.values)) {
+    delete chromeLocalStorageMock.values[key];
   }
+  chromeLocalStorageMock.get.mockImplementation(
+    async (key: string | string[] | null) => {
+      if (key === null) {
+        return { ...chromeLocalStorageMock.values };
+      }
+
+      if (Array.isArray(key)) {
+        return Object.fromEntries(
+          key
+            .filter((itemKey) =>
+              Object.prototype.hasOwnProperty.call(
+                chromeLocalStorageMock.values,
+                itemKey,
+              ),
+            )
+            .map((itemKey) => [
+              itemKey,
+              chromeLocalStorageMock.values[itemKey],
+            ]),
+        );
+      }
+
+      return Object.prototype.hasOwnProperty.call(
+        chromeLocalStorageMock.values,
+        key,
+      )
+        ? { [key]: chromeLocalStorageMock.values[key] }
+        : {};
+    },
+  );
+  chromeLocalStorageMock.set.mockImplementation(
+    async (items: Record<string, unknown>) => {
+      Object.assign(chromeLocalStorageMock.values, items);
+    },
+  );
+  chromeLocalStorageMock.remove.mockImplementation(
+    async (key: string | string[]) => {
+      for (const itemKey of Array.isArray(key) ? key : [key]) {
+        delete chromeLocalStorageMock.values[itemKey];
+      }
+    },
+  );
+});
+
+afterEach(async () => {
+  for (const tab of tabs) {
+    await removeSnapshot(tab.tabId);
+  }
+  vi.restoreAllMocks();
 });
 
 describe('decideSkill', () => {
@@ -155,7 +243,7 @@ describe('runConnector', () => {
 
   it('executes tool calls before returning the final response', async () => {
     for (const tab of tabs) {
-      upsertSnapshot(tab);
+      await upsertSnapshot(tab);
     }
     const toolCallBody = {
       id: 'chatcmpl-tool-call',
@@ -173,7 +261,7 @@ describe('runConnector', () => {
                 id: 'call-list-tabs',
                 type: 'function' as const,
                 function: {
-                  name: 'tabSnapshotListIds',
+                  name: 'tabSnapshotListBasicTool',
                   arguments: '{}',
                 },
               },
@@ -229,8 +317,9 @@ describe('runConnector', () => {
       RequestInit | undefined,
     ];
     const secondBody = requestBodyAsString(secondInitArg?.body);
-    expect(secondBody).toContain('tabSnapshotListIds');
-    expect(secondBody).toContain('[1,2]');
+    expect(secondBody).toContain('tabSnapshotListBasicTool');
+    expect(secondBody).toContain('https://example.com/news');
+    expect(secondBody).toContain('https://example.com/shop');
     expect(result.reply).toContain('根据当前标签页，可以分两步完成');
   });
 
@@ -318,7 +407,7 @@ describe('runConnector', () => {
 
   it('streams tool deltas without adding them to the final reply', async () => {
     for (const tab of tabs) {
-      upsertSnapshot(tab);
+      await upsertSnapshot(tab);
     }
 
     const toolCallChunks = [
@@ -337,7 +426,7 @@ describe('runConnector', () => {
                   id: 'call-list-tabs',
                   type: 'function' as const,
                   function: {
-                    name: 'tabSnapshotListIds',
+                    name: 'tabSnapshotListBasicTool',
                     arguments: '{}',
                   },
                   index: 0,
@@ -384,7 +473,7 @@ describe('runConnector', () => {
         delta: expect.objectContaining({
           event: 'call',
           toolCallId: 'call-list-tabs',
-          toolName: 'tabSnapshotListIds',
+          toolName: 'tabSnapshotListBasicTool',
           input: {},
         }),
         type: 'tool',
@@ -395,9 +484,14 @@ describe('runConnector', () => {
       {
         event: 'result',
         toolCallId: 'call-list-tabs',
-        toolName: 'tabSnapshotListIds',
+        toolName: 'tabSnapshotListBasicTool',
         input: {},
-        output: { data: [1, 2] },
+        output: {
+          data: [
+            { url: 'https://example.com/shop', title: '商品详情页' },
+            { url: 'https://example.com/news', title: '今日热点' },
+          ],
+        },
       },
     ]);
     expect(deltas.filter((part) => part.type === 'answer')).toEqual([

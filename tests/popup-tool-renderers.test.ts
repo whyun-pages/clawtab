@@ -10,9 +10,9 @@ describe('popup tool renderers', () => {
     expect(getToolRenderer(createDelta('tabSnapshotGet'))).toBeInstanceOf(
       TabSnapshotGetRenderer,
     );
-    expect(getToolRenderer(createDelta('tabSnapshotListIds'))).toBeInstanceOf(
-      TabSnapshotListIdsRenderer,
-    );
+    expect(
+      getToolRenderer(createDelta('tabSnapshotListBasicTool')),
+    ).toBeInstanceOf(TabSnapshotListIdsRenderer);
   });
 
   it('falls back to the generic renderer for unknown tools', () => {
@@ -26,16 +26,18 @@ describe('popup tool renderers', () => {
       event: 'result',
       toolCallId: 'call-1',
       toolName: 'tabSnapshotGet',
-      input: { tabId: 1, unsafe: '<script>' },
+      input: { tabUrl: 'https://example.com/shop', unsafe: '<script>' },
       output: { data: null },
     }).render();
 
     expect(html).toContain('工具调用：获取标签快照');
     expect(html).toContain('<div class="message__tool-label">输入</div>');
-    expect(html).toContain('<pre class="message__tool-input">1</pre>');
+    expect(html).toContain(
+      '<pre class="message__tool-input">https://example.com/shop</pre>',
+    );
     expect(html).toContain('<div class="message__tool-label">输出</div>');
     expect(html).toContain('<pre class="message__tool-output">');
-    expect(html).not.toContain('&quot;tabId&quot;');
+    expect(html).not.toContain('&quot;tabUrl&quot;');
     expect(html).not.toContain('&lt;script&gt;');
   });
 
@@ -43,7 +45,7 @@ describe('popup tool renderers', () => {
     const html = getToolRenderer({
       event: 'result',
       toolCallId: 'call-1',
-      toolName: 'tabSnapshotListIds',
+      toolName: 'tabSnapshotListBasicTool',
       input: { unsafe: '<script>' },
       output: { data: [] },
     }).render();
