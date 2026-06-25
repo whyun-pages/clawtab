@@ -139,6 +139,29 @@ describe('popup message view', () => {
     );
   });
 
+  it('renders assistant reasoning collapsed by default', async () => {
+    const { renderMessages } = await import('../src/popup/message-view');
+
+    renderMessages([
+      {
+        id: 'assistant-reasoning',
+        role: 'assistant',
+        content: '回答',
+        reasoning: '先分析',
+      },
+    ]);
+
+    expect(domMock.messagesElement.innerHTML).toContain(
+      'class="message message--assistant"',
+    );
+    expect(domMock.messagesElement.innerHTML).toContain(
+      '<details class="message__reasoning">',
+    );
+    expect(domMock.messagesElement.innerHTML).not.toContain(
+      '<details class="message__reasoning" open>',
+    );
+  });
+
   it('renders copy buttons for non-empty user and assistant content only', async () => {
     const { renderMessages } = await import('../src/popup/message-view');
 

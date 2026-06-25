@@ -3,7 +3,7 @@ import type { ToolStreamDelta } from '../../shared/types';
 import { AbstractToolRenderer } from './abstract-tool.renderer';
 import { GenericToolRenderer } from './generic-tool.renderer';
 import { TabSnapshotGetRenderer } from './tab-snapshot-get.renderer';
-import { TabSnapshotListIdsRenderer } from './tab-snapshot-list-ids.renderer';
+import { TabSnapshotListBasicRenderer } from './tab-snapshot-list-basic.renderer';
 
 type ToolRendererConstructor = new (
   delta: ToolStreamDelta,
@@ -11,7 +11,7 @@ type ToolRendererConstructor = new (
 
 const toolRenderers: Record<ToolName, ToolRendererConstructor> = {
   tabSnapshotGet: TabSnapshotGetRenderer,
-  tabSnapshotListBasicTool: TabSnapshotListIdsRenderer,
+  tabSnapshotListBasicTool: TabSnapshotListBasicRenderer,
 };
 
 export function getToolRenderer(delta: ToolStreamDelta): AbstractToolRenderer {

@@ -46,7 +46,7 @@ function renderMessage(message: ChatMessage): string {
   const className = `message message--${roleClass}`;
   let reasoningHtml = '';
   if (message.role === 'assistant' && message.reasoning?.trim()) {
-    reasoningHtml = `<details class="message__reasoning" open><summary>思考过程</summary><div>${escapeHtml(
+    reasoningHtml = `<details class="message__reasoning"><summary>思考过程</summary><div>${escapeHtml(
       message.reasoning,
     )}</div></details>`;
   }

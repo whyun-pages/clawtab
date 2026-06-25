@@ -27,12 +27,15 @@ export abstract class AbstractToolRenderer {
   protected formatInput(input: unknown): string {
     return formatToolInputOutput(input);
   }
+  protected formatOutput(output: unknown): string {
+    return formatToolInputOutput(output);
+  }
   public get output(): string | undefined {
     if (!('output' in this.toolStreamDelta)) {
       return undefined;
     }
 
-    return formatToolInputOutput(this.toolStreamDelta.output);
+    return this.formatOutput(this.toolStreamDelta.output);
   }
   public render(): string {
     return `<details class="message__tool-call"><summary>工具调用：${escapeHtml(

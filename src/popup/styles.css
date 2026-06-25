@@ -10,7 +10,7 @@ body {
 }
 
 .app {
-  width: 380px;
+  width: 100%;
   min-height: 520px;
   display: flex;
   flex-direction: column;

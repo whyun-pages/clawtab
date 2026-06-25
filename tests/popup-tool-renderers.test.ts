@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getToolRenderer } from '../src/popup/tools';
 import { GenericToolRenderer } from '../src/popup/tools/generic-tool.renderer';
 import { TabSnapshotGetRenderer } from '../src/popup/tools/tab-snapshot-get.renderer';
-import { TabSnapshotListIdsRenderer } from '../src/popup/tools/tab-snapshot-list-ids.renderer';
+import { TabSnapshotListBasicRenderer } from '../src/popup/tools/tab-snapshot-list-basic.renderer';
 import type { ToolStreamDelta } from '../src/shared/types';
 
 describe('popup tool renderers', () => {
@@ -12,7 +12,7 @@ describe('popup tool renderers', () => {
     );
     expect(
       getToolRenderer(createDelta('tabSnapshotListBasicTool')),
-    ).toBeInstanceOf(TabSnapshotListIdsRenderer);
+    ).toBeInstanceOf(TabSnapshotListBasicRenderer);
   });
 
   it('falls back to the generic renderer for unknown tools', () => {
