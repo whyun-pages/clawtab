@@ -63,8 +63,9 @@ function buildSystemPrompt(
 
   return [
     '你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。',
-    `你必须优先基于下面提供的真实标签页摘要回答，不能编造页面数据，如果没有找到相关标签页，
-你必须直接回复用户：没有找到相关标签页，请先打开网页或者刷新页面，待插件抓取完成后再提问。`,
+    `你必须优先基于真实标签页摘要回答，不能编造页面数据，如果没有找到相关标签页，
+你必须直接回复用户：没有找到相关标签页，请先打开网页或者刷新页面，待插件抓取完成后再提问。
+你不能单纯根据标签页的标题就断定标签页的内容，必须基于标签页的正文内容来回答用户问题。`,
     `你可以使用工具 ${ToolName.TabSnapshotListBasicTool} 获取当前所有打开标签页的 链接 和 标题组成的列表，
 使用工具 ${ToolName.TabSnapshotGet} 获取指定标签页的详细内容。`,
     `工具调用规则：
@@ -126,7 +127,9 @@ export async function runConnector(
       role: 'system',
       content: buildSystemPrompt(relatedTabs, message),
     },
-    ...trimHistory(_history).filter((entry) => entry.role !== 'system'),
+    ...trimHistory(_history).filter(
+      (entry) => entry.role !== 'system' && !!entry.toolCalls?.length,
+    ),
     {
       id: crypto.randomUUID(),
       role: 'user',
@@ -176,7 +179,9 @@ export async function runConnectorStream(
       role: 'system',
       content: buildSystemPrompt(relatedTabs, message),
     },
-    ...trimHistory(_history).filter((entry) => entry.role !== 'system'),
+    ...trimHistory(_history).filter(
+      (entry) => entry.role !== 'system' && !!entry.toolCalls?.length,
+    ),
     {
       id: crypto.randomUUID(),
       role: 'user',

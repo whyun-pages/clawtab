@@ -6,7 +6,7 @@ import type {
 } from 'ai';
 import { generateText, stepCountIs, streamText } from 'ai';
 
-import { gatewayTools, GatewayTools } from '../ai/tools';
+import { gatewayTools, GatewayTools, ToolName } from '../ai/tools';
 import { defaultLogger } from '../lib/logger';
 import type { ChatMessage, LlmConfig, ToolStreamDelta } from '../shared/types';
 import type { LlmStreamDelta } from './think-tag-parser';
@@ -20,6 +20,9 @@ interface StreamLlmResult {
   toolCalls?: ToolStreamDelta[];
 }
 
+type GatewayOptions = Parameters<typeof streamText<GatewayTools>>[0] &
+  Parameters<typeof generateText<GatewayTools>>[0];
+
 function createProvider(config: LlmConfig) {
   return createOpenAICompatible({
     name: 'clawtab',
@@ -32,7 +35,7 @@ function buildGatewayOptions(
   config: LlmConfig,
   messages: ChatMessage[],
   abortSignal?: AbortSignal,
-) {
+): GatewayOptions {
   const provider = createProvider(config);
 
   return {
@@ -44,6 +47,27 @@ function buildGatewayOptions(
     tools: gatewayTools,
     toolChoice: 'auto' as const,
     stopWhen: stepCountIs(5),
+    prepareStep: ({ stepNumber }: { stepNumber: number }) => {
+      if (stepNumber === 0) {
+        return {
+          toolChoice: {
+            type: 'tool' as const,
+            toolName: ToolName.TabSnapshotListBasicTool,
+          },
+        };
+      }
+      if (stepNumber === 1) {
+        return {
+          toolChoice: {
+            type: 'tool' as const,
+            toolName: ToolName.TabSnapshotGet,
+          },
+        };
+      }
+      return {
+        toolChoice: 'auto' as const,
+      };
+    },
     abortSignal,
     experimental_onToolCallStart: ({
       stepNumber,
