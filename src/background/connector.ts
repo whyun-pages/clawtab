@@ -1,4 +1,4 @@
-import { ToolName } from '../ai/tools';
+import { buildSystemPrompt } from '../ai/prompt/system-prompt';
 import type {
   ChatMessage,
   ConnectorResult,
@@ -52,37 +52,6 @@ function selectRelatedTabs(
 //     .join('\n\n');
 // }
 
-function buildSystemPrompt(
-  relatedTabs: PageSnapshot[],
-  userMessage: string,
-): string {
-  // const decision = decideSkill(userMessage);
-  // const skillLine = decision.skill
-  //   ? `用户当前请求命中了 ${decision.skill} skill，原因：${decision.reason}`
-  //   : `用户当前请求未命中内置 skill，原因：${decision.reason}`;
-
-  return [
-    '你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。',
-    `你必须优先基于真实标签页摘要回答，不能编造页面数据，如果没有找到相关标签页，
-你必须直接回复用户：没有找到相关标签页，请先打开网页或者刷新页面，待插件抓取完成后再提问。
-你不能单纯根据标签页的标题就断定标签页的内容，必须基于标签页的正文内容来回答用户问题。`,
-    `你可以使用工具 ${ToolName.TabSnapshotListBasicTool} 获取当前所有打开标签页的 链接 和 标题组成的列表，
-使用工具 ${ToolName.TabSnapshotGet} 获取指定标签页的详细内容。`,
-    `工具调用规则：
-1. 调用 ${ToolName.TabSnapshotGet} 时必须提供 tabUrl 字段。
-2. 如果你不知道应该读取哪个 tabUrl，必须先调用 ${ToolName.TabSnapshotListBasicTool} 获取可用标签页 URL 列表。
-3. ${ToolName.TabSnapshotGet} 的 tabUrl 必须来自 ${ToolName.TabSnapshotListBasicTool} 返回的 data 数组，不能省略、猜测或编造 tabUrl。
-4. 如果 ${ToolName.TabSnapshotListBasicTool} 返回的 data 数组为空，必须终止当前工具调用流程，并直接回复用户：标签页数据为空，请刷新对应的标签后重试。`,
-    // '当用户询问商品价格/对比、热点/新闻、视频总结/字幕时，应优先使用对应能力或工作流。',
-    // skillLine,
-    '',
-    // '当前相关标签页：',
-    // summarizeTabs(relatedTabs),
-    // '',
-    `本轮用户问题：${userMessage}`,
-  ].join('\n');
-}
-
 function buildMissingConfigReply(_relatedTabs: PageSnapshot[]): string {
   return [
     '还没有配置大模型接口，暂时无法发送真实请求。',
@@ -125,7 +94,7 @@ export async function runConnector(
     {
       id: crypto.randomUUID(),
       role: 'system',
-      content: buildSystemPrompt(relatedTabs, message),
+      content: buildSystemPrompt(),
     },
     ...trimHistory(_history).filter(
       (entry) => entry.role !== 'system' && !!entry.toolCalls?.length,
@@ -177,7 +146,7 @@ export async function runConnectorStream(
     {
       id: crypto.randomUUID(),
       role: 'system',
-      content: buildSystemPrompt(relatedTabs, message),
+      content: buildSystemPrompt(),
     },
     ...trimHistory(_history).filter(
       (entry) => entry.role !== 'system' && !!entry.toolCalls?.length,
