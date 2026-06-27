@@ -2,6 +2,7 @@
  * MV3 Service Worker：接收 content/popup 消息，维护标签页快照、聊天历史与扩展配置。
  */
 import { defaultLogger } from '../lib/logger';
+import type { UrlChangedMessage } from '../shared/content';
 import type {
   ChatStreamClientMessage,
   ChatStreamServerMessage,
@@ -87,6 +88,21 @@ chrome.tabs.onRemoved.addListener((tabId) => {
       error,
     );
   });
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  // 当 URL 发生变化且状态为 loading 或 complete 时
+  if (changeInfo.url) {
+    const message: UrlChangedMessage = {
+      type: 'url-changed',
+      url: changeInfo.url,
+    };
+    chrome.tabs.sendMessage(tabId, message).catch((error) => {
+      defaultLogger.debug(
+        `Skip url-changed for tabId ${tabId}: ${String(error)}`,
+      );
+    });
+  }
 });
 
 function postToPort(

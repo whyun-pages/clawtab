@@ -1,5 +1,6 @@
 import { defaultLogger } from '../lib/logger';
 import { ignoreErrors, scope } from '../lib/sentry-setup';
+import type { ContentMessage } from '../shared/content';
 import type { ContentSnapshotMessage } from '../shared/types';
 import { getInstance } from './content-extractor/extractor-factory';
 import {
@@ -60,17 +61,20 @@ function doSendSnapshot(): void {
     defaultLogger.error('ClawTab snapshot failed:', error);
   });
 }
-if (
-  document.readyState === 'complete' ||
-  document.readyState === 'interactive'
-) {
+if (document.readyState === 'complete') {
   setTimeout(() => {
+    defaultLogger.info(
+      'ClawTab document readyState complete, sending snapshot...',
+    );
     doSendSnapshot();
   }, 1000);
 } else {
   window.addEventListener(
     'load',
     () => {
+      defaultLogger.info(
+        'ClawTab window load event detected, sending snapshot...',
+      );
       doSendSnapshot();
     },
     { once: true },
@@ -79,16 +83,51 @@ if (
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
+    defaultLogger.info(
+      'ClawTab visibilitychange event detected, sending snapshot...',
+    );
     doSendSnapshot();
   }
 });
 
 window.addEventListener('popstate', () => {
+  defaultLogger.info('ClawTab popstate event detected, sending snapshot...');
   doSendSnapshot();
 });
 window.addEventListener('hashchange', () => {
+  defaultLogger.info('ClawTab hashchange event detected, sending snapshot...');
   doSendSnapshot();
 });
+
+chrome.runtime.onMessage.addListener((message: ContentMessage) => {
+  if (message.type === 'url-changed') {
+    defaultLogger.info(
+      'ClawTab url-changed event detected, sending snapshot...',
+      message.url,
+    );
+    doSendSnapshot();
+  }
+});
+
+// // 1. 获取 title 节点
+// const titleNode = document.querySelector('title');
+
+// // 2. 创建观察者实例
+// const cb = (mutationsList) => {
+//   for (const mutation of mutationsList) {
+//     if (mutation.type === 'childList' || mutation.type === 'characterData') {
+//       doSendSnapshot();
+//     }
+//   }
+// };
+// const observer = new MutationObserver(cb);
+
+// // 3. 开始监听配置
+// observer.observe(titleNode, {
+//   childList: true, // 监听子节点的变化（比如文字被替换）
+//   characterData: true, // 监听节点内容的变化
+//   subtree: true, // 包含后代节点
+// });
 
 function captureException(errPrefix: string, error: Error | string): void {
   const errMsg = error instanceof Error ? error.message : String(error);
