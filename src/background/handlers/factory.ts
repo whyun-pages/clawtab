@@ -6,9 +6,13 @@ import { chatStreamStartHandler } from './chat-stream-start.handler';
 import { contentSnapshotHandler } from './content-snapshot.handler';
 import { getChatStateHandler } from './get-chat-state.handler';
 import { getConfigHandler } from './get-config.handler';
-import { resetChatStateHandler } from './reset-chat-state.handler';
 import { saveConfigHandler } from './save-config.handler';
 import { sendChatHandler } from './send-chat.handler';
+import { sessionCreateHandler } from './session-create.handler';
+import { sessionDeleteHandler } from './session-delete.handler';
+import { sessionListHandler } from './session-list.handler';
+import { sessionRenameHandler } from './session-rename.handler';
+import { sessionSwitchHandler } from './session-switch.handler';
 import type {
   AnyBackgroundMessageHandler,
   BackgroundMessageType,
@@ -23,10 +27,14 @@ const handlerRegistry = new Map<
   [contentSnapshotHandler.type, contentSnapshotHandler],
   [sendChatHandler.type, sendChatHandler],
   [getChatStateHandler.type, getChatStateHandler],
-  [resetChatStateHandler.type, resetChatStateHandler],
   [getConfigHandler.type, getConfigHandler],
   [saveConfigHandler.type, saveConfigHandler],
   [chatStreamStartHandler.type, chatStreamStartHandler],
+  [sessionListHandler.type, sessionListHandler],
+  [sessionCreateHandler.type, sessionCreateHandler],
+  [sessionSwitchHandler.type, sessionSwitchHandler],
+  [sessionDeleteHandler.type, sessionDeleteHandler],
+  [sessionRenameHandler.type, sessionRenameHandler],
 ]);
 
 export function getBackgroundMessageHandler(

@@ -5,26 +5,25 @@ import './styles.css';
 import type {
   GetChatStateRequest,
   GetChatStateResponse,
-  ResetChatStateRequest,
 } from '../shared/types';
 import { getHistory, setConfig, setHistory } from './chat-state';
+import { bindChatShortcut } from './chat-shortcut';
 import { startChatStream, stopChatStream } from './chat-stream-controller';
-import {
-  bindConfigForm,
-  buildConfigStatus,
-  hydrateConfig,
-  setConfigStatus,
-} from './config-controller';
-import { formElement, inputElement, resetButton, submitButton } from './dom';
+import { buildConfigStatus, hydrateConfig, setConfigStatus } from './config-controller';
+import { formElement, inputElement, submitButton } from './dom';
 import { bindMessageCopyActions } from './message-copy';
 import { renderMessages, renderRealtimeMessage } from './message-view';
+import { mountSessionPanel } from './session-panel';
+import { mountSettingsPanel } from './settings-panel';
 
 void bootstrap();
 bindMessageCopyActions();
 bindChatForm();
-bindResetButton();
-bindConfigForm((config) => {
-  setConfig(config);
+bindShortcut();
+mountSettingsPanel({
+  onConfigSaved: (config) => {
+    setConfig(config);
+  },
 });
 
 function bindChatForm(): void {
@@ -46,19 +45,36 @@ function bindChatForm(): void {
   });
 }
 
-function bindResetButton(): void {
-  resetButton?.addEventListener('click', () => {
-    void resetChatState();
+function bindShortcut(): void {
+  if (!inputElement || !formElement || !submitButton) {
+    return;
+  }
+  bindChatShortcut({
+    input: inputElement,
+    form: formElement,
+    submitter: submitButton,
   });
 }
 
 async function bootstrap(): Promise<void> {
-  const request: GetChatStateRequest = {
-    type: 'chat/state:get',
-  };
-  const response: GetChatStateResponse =
-    await chrome.runtime.sendMessage(request);
+  const response = await fetchChatState();
 
+  setHistory(response.history);
+  setConfig(response.config);
+  hydrateConfig(response.config);
+  setConfigStatus(buildConfigStatus(response.config));
+  render();
+
+  mountSessionPanel({
+    initialSessions: response.sessions,
+    initialCurrentSid: response.currentSid,
+    onSessionChanged: refreshChatState,
+  });
+}
+
+async function refreshChatState(): Promise<void> {
+  stopChatStream();
+  const response = await fetchChatState();
   setHistory(response.history);
   setConfig(response.config);
   hydrateConfig(response.config);
@@ -66,20 +82,9 @@ async function bootstrap(): Promise<void> {
   render();
 }
 
-async function resetChatState(): Promise<void> {
-  stopChatStream();
-
-  const request: ResetChatStateRequest = {
-    type: 'chat/state:reset',
-  };
-  const response: GetChatStateResponse =
-    await chrome.runtime.sendMessage(request);
-
-  setHistory(response.history);
-  setConfig(response.config);
-  hydrateConfig(response.config);
-  setConfigStatus(buildConfigStatus(response.config));
-  render();
+async function fetchChatState(): Promise<GetChatStateResponse> {
+  const request: GetChatStateRequest = { type: 'chat/state:get' };
+  return chrome.runtime.sendMessage(request);
 }
 
 function render(): void {

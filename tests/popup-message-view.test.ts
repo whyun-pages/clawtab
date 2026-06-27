@@ -1,6 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ChatMessage } from '../src/shared/types';
 
+function makeMessage(
+  init: Partial<ChatMessage> & Pick<ChatMessage, 'cid' | 'role' | 'content'>,
+): ChatMessage {
+  return {
+    sid: 'sess-test',
+    createdAt: 0,
+    seq: 0,
+    ...init,
+  };
+}
+
 const domMock = vi.hoisted(() => {
   const listeners = new Map<string, Array<(event: Event) => void>>();
   const messagesElement = {
@@ -61,61 +72,57 @@ describe('popup message view', () => {
     vi.useRealTimers();
   });
 
-  it(
-    'renders completed tool call inputs inside assistant messages',
-    async () => {
-      const { renderMessages } = await import('../src/popup/message-view');
-      const history: ChatMessage[] = [
-        {
-          id: 'assistant-1',
-          role: 'assistant',
-          content: '回答',
-          toolCalls: [
-            {
-              event: 'result',
-              toolCallId: 'call-1',
-              toolName: 'tabSnapshotGet',
-              input: {
-                tabUrl: 'https://example.com/shop',
-                unsafe: '<script>',
-              },
-              output: { data: null },
+  it('renders completed tool call inputs inside assistant messages', async () => {
+    const { renderMessages } = await import('../src/popup/message-view');
+    const history: ChatMessage[] = [
+      makeMessage({
+        cid: 'assistant-1',
+        role: 'assistant',
+        content: '回答',
+        toolCalls: [
+          {
+            event: 'result',
+            toolCallId: 'call-1',
+            toolName: 'tabSnapshotGet',
+            input: {
+              tabUrl: 'https://example.com/shop',
+              unsafe: '<script>',
             },
-          ],
-        },
-      ];
+            output: { data: null },
+          },
+        ],
+      }),
+    ];
 
-      renderMessages(history);
+    renderMessages(history);
 
-      expect(domMock.messagesElement.innerHTML).toContain(
-        'data-message-id="assistant-1"',
-      );
-      expect(domMock.messagesElement.innerHTML).toContain(
-        '工具调用：获取标签快照',
-      );
-      expect(domMock.messagesElement.innerHTML).toContain(
-        '<div class="message__tool-label">输入</div>',
-      );
-      expect(domMock.messagesElement.innerHTML).toContain(
-        '<pre class="message__tool-input">https://example.com/shop</pre>',
-      );
-      expect(domMock.messagesElement.innerHTML).toContain(
-        '<div class="message__tool-label">输出</div>',
-      );
-      expect(domMock.messagesElement.innerHTML).not.toContain(
-        '&quot;tabUrl&quot;',
-      );
-      expect(domMock.messagesElement.innerHTML).not.toContain('&lt;script&gt;');
-    },
-    10_000,
-  );
+    expect(domMock.messagesElement.innerHTML).toContain(
+      'data-message-id="assistant-1"',
+    );
+    expect(domMock.messagesElement.innerHTML).toContain(
+      '工具调用：获取标签快照',
+    );
+    expect(domMock.messagesElement.innerHTML).toContain(
+      '<div class="message__tool-label">输入</div>',
+    );
+    expect(domMock.messagesElement.innerHTML).toContain(
+      '<pre class="message__tool-input">https://example.com/shop</pre>',
+    );
+    expect(domMock.messagesElement.innerHTML).toContain(
+      '<div class="message__tool-label">输出</div>',
+    );
+    expect(domMock.messagesElement.innerHTML).not.toContain(
+      '&quot;tabUrl&quot;',
+    );
+    expect(domMock.messagesElement.innerHTML).not.toContain('&lt;script&gt;');
+  }, 10_000);
 
   it('renders tool calls above assistant reasoning', async () => {
     const { renderMessages } = await import('../src/popup/message-view');
 
     renderMessages([
-      {
-        id: 'assistant-order',
+      makeMessage({
+        cid: 'assistant-order',
         role: 'assistant',
         content: '回答',
         reasoning: '先分析',
@@ -128,7 +135,7 @@ describe('popup message view', () => {
             output: { data: [] },
           },
         ],
-      },
+      }),
     ]);
 
     const html = domMock.messagesElement.innerHTML;
@@ -143,12 +150,12 @@ describe('popup message view', () => {
     const { renderMessages } = await import('../src/popup/message-view');
 
     renderMessages([
-      {
-        id: 'assistant-reasoning',
+      makeMessage({
+        cid: 'assistant-reasoning',
         role: 'assistant',
         content: '回答',
         reasoning: '先分析',
-      },
+      }),
     ]);
 
     expect(domMock.messagesElement.innerHTML).toContain(
@@ -166,9 +173,9 @@ describe('popup message view', () => {
     const { renderMessages } = await import('../src/popup/message-view');
 
     renderMessages([
-      { id: 'user-1', role: 'user', content: '问题' },
-      { id: 'assistant-empty', role: 'assistant', content: '' },
-      { id: 'assistant-1', role: 'assistant', content: '回答' },
+      makeMessage({ cid: 'user-1', role: 'user', content: '问题' }),
+      makeMessage({ cid: 'assistant-empty', role: 'assistant', content: '' }),
+      makeMessage({ cid: 'assistant-1', role: 'assistant', content: '回答' }),
     ]);
 
     expect(domMock.messagesElement.innerHTML).toContain(
@@ -187,15 +194,17 @@ describe('popup message view', () => {
       await import('../src/popup/message-view');
 
     renderMessages([
-      { id: 'user-1', role: 'user', content: '问题' },
-      { id: 'assistant-1', role: 'assistant', content: '' },
+      makeMessage({ cid: 'user-1', role: 'user', content: '问题' }),
+      makeMessage({ cid: 'assistant-1', role: 'assistant', content: '' }),
     ]);
 
-    renderRealtimeMessage({
-      id: 'assistant-1',
-      role: 'assistant',
-      content: '实时回答',
-    });
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-1',
+        role: 'assistant',
+        content: '实时回答',
+      }),
+    );
 
     expect(domMock.messagesElement.innerHTML).toContain(
       'data-message-id="user-1"',
@@ -214,8 +223,8 @@ describe('popup message view', () => {
     const { renderMessages } = await import('../src/popup/message-view');
 
     renderMessages([
-      {
-        id: 'assistant-md',
+      makeMessage({
+        cid: 'assistant-md',
         role: 'assistant',
         content: [
           '## 标题',
@@ -235,7 +244,7 @@ describe('popup message view', () => {
           '<img src=x onerror="alert(2)">',
           '[bad](javascript:alert(3))',
         ].join('\n'),
-      },
+      }),
     ]);
 
     expect(domMock.messagesElement.innerHTML).toContain(
@@ -260,11 +269,11 @@ describe('popup message view', () => {
     const { renderMessages } = await import('../src/popup/message-view');
 
     renderMessages([
-      {
-        id: 'user-md',
+      makeMessage({
+        cid: 'user-md',
         role: 'user',
         content: '**不要加粗**\n<script>alert(1)</script>',
-      },
+      }),
     ]);
 
     expect(domMock.messagesElement.innerHTML).toContain(
@@ -293,8 +302,12 @@ describe('popup message view', () => {
 
     bindMessageCopyActions();
     renderMessages([
-      { id: 'user-copy', role: 'user', content: '用户 **原文**' },
-      { id: 'assistant-copy', role: 'assistant', content: '**Markdown** 回答' },
+      makeMessage({ cid: 'user-copy', role: 'user', content: '用户 **原文**' }),
+      makeMessage({
+        cid: 'assistant-copy',
+        role: 'assistant',
+        content: '**Markdown** 回答',
+      }),
     ]);
 
     await clickCopyButton('user-copy');

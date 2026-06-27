@@ -21,14 +21,14 @@ export function renderMessageCopyButton(message: ChatMessage): string {
     (message.role !== 'assistant' && message.role !== 'user') ||
     !message.content.trim()
   ) {
-    copyTextByMessageId.delete(message.id);
+    copyTextByMessageId.delete(message.cid);
     return '';
   }
 
-  copyTextByMessageId.set(message.id, message.content);
+  copyTextByMessageId.set(message.cid, message.content);
 
   return `<div class="message__actions"><button class="message__copy" type="button" aria-label="复制" title="复制" data-copy-message-id="${escapeHtml(
-    message.id,
+    message.cid,
   )}">${copyIconHtml}</button></div>`;
 }
 

@@ -42,8 +42,8 @@ export abstract class AbstractToolRenderer {
       this.name,
     )}</summary><div class="message__tool-label">输入</div><pre class="message__tool-input">${escapeHtml(
       this.input,
-    )}</pre><div class="message__tool-label">输出</div><pre class="message__tool-output">${escapeHtml(
-      this.output || '',
-    )}</pre></details>`;
+    )}</pre><div class="message__tool-label">输出</div><pre class="message__tool-output">${
+      this.output || ''
+    }</pre></details>`;
   }
 }

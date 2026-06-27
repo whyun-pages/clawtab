@@ -14,70 +14,73 @@ export function setHistory(nextHistory: ChatMessage[]): void {
 export function appendMessage(
   role: ChatMessage['role'],
   content: string,
-  id: string = crypto.randomUUID(),
+  cid: string = crypto.randomUUID(),
 ): ChatMessage {
-  const entry = {
-    id,
+  const entry: ChatMessage = {
+    cid,
+    sid: '',
     role,
     content,
+    createdAt: Date.now(),
+    seq: history.length,
   };
   history.push(entry);
   return entry;
 }
 
 export function updateMessage(
-  messageId: string | null,
+  cid: string | null,
   updater: (currentContent: string) => string,
 ): void {
-  if (!messageId) {
+  if (!cid) {
     return;
   }
 
-  const message = history.find((entry) => entry.id === messageId);
+  const message = history.find((entry) => entry.cid === cid);
   if (message) {
     message.content = updater(message.content);
   }
 }
 
 export function updateMessageReasoning(
-  messageId: string | null,
+  cid: string | null,
   updater: (currentReasoning: string) => string,
 ): void {
-  if (!messageId) {
+  if (!cid) {
     return;
   }
 
-  const message = history.find((entry) => entry.id === messageId);
+  const message = history.find((entry) => entry.cid === cid);
   if (message) {
     message.reasoning = updater(message.reasoning ?? '');
   }
 }
 
 export function appendMessageToolCall(
-  messageId: string | null,
+  cid: string | null,
   toolCall: ToolStreamDelta,
 ): void {
-  if (!messageId) {
+  if (!cid) {
     return;
   }
 
-  const message = history.find((entry) => entry.id === messageId);
+  const message = history.find((entry) => entry.cid === cid);
   if (message) {
     message.toolCalls = [...(message.toolCalls ?? []), toolCall];
   }
 }
 
-export function replaceMessageId(
-  previousId: string | null,
-  nextId: string,
+export function replaceMessageCid(
+  previousCid: string | null,
+  nextCid: string,
 ): void {
-  if (!previousId || previousId === nextId) {
+  if (!previousCid || previousCid === nextCid) {
     return;
   }
 
-  const message = history.find((entry) => entry.id === previousId);
+  const message = history.find((entry) => entry.cid === previousCid);
   if (message) {
-    message.id = nextId;
+    message.cid = nextCid;
   }
 }
 

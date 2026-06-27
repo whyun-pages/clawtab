@@ -14,10 +14,14 @@ describe('background handler factory', () => {
     'content/snapshot',
     'chat/send',
     'chat/state:get',
-    'chat/state:reset',
     'config/get',
     'config/save',
     'chat/stream:start',
+    'session/list',
+    'session/create',
+    'session/switch',
+    'session/delete',
+    'session/rename',
   ] as const)('returns a handler for %s', (type) => {
     const handler = getBackgroundMessageHandler(type);
 

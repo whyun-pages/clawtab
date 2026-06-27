@@ -25,7 +25,7 @@ export function renderRealtimeMessage(message: ChatMessage): void {
   }
 
   const existing = messagesElement.querySelector<HTMLElement>(
-    `[data-message-id="${escapeCssAttributeValue(message.id)}"]`,
+    `[data-message-id="${escapeCssAttributeValue(message.cid)}"]`,
   );
 
   if (existing) {
@@ -56,7 +56,7 @@ function renderMessage(message: ChatMessage): string {
   const copyHtml = renderMessageCopyButton(message);
 
   return `<article class="${className}" data-message-id="${escapeHtml(
-    message.id,
+    message.cid,
   )}">${toolCallsHtml}${reasoningHtml}${contentHtml}${copyHtml}</article>`;
 }
 

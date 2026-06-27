@@ -16,11 +16,21 @@ export interface PageSnapshot extends PageSnapshotBasicInfo {
 }
 
 export interface ChatMessage {
-  id: string;
+  cid: string;
+  sid: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   reasoning?: string;
   toolCalls?: ToolStreamDelta[];
+  createdAt: number;
+  seq: number;
+}
+
+export interface Session {
+  sid: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface LlmConfig {
@@ -137,6 +147,7 @@ export type ChatStreamDeltaMessage =
 export interface ChatStreamDoneMessage {
   type: 'chat/stream:done';
   requestId: string;
+  sid: string;
   result: ConnectorResult;
   history: ChatMessage[];
 }
@@ -163,10 +174,62 @@ export interface GetChatStateResponse {
   ok: true;
   history: ChatMessage[];
   config: LlmConfig;
+  currentSid: string;
+  sessions: Session[];
 }
 
-export interface ResetChatStateRequest {
-  type: 'chat/state:reset';
+export interface SessionListRequest {
+  type: 'session/list';
+}
+
+export interface SessionListResponse {
+  ok: true;
+  sessions: Session[];
+  currentSid: string;
+}
+
+export interface SessionCreateRequest {
+  type: 'session/create';
+  title?: string;
+}
+
+export interface SessionCreateResponse {
+  ok: true;
+  session: Session;
+  history: ChatMessage[];
+  currentSid: string;
+}
+
+export interface SessionSwitchRequest {
+  type: 'session/switch';
+  sid: string;
+}
+
+export interface SessionSwitchResponse {
+  ok: true;
+  currentSid: string;
+}
+
+export interface SessionDeleteRequest {
+  type: 'session/delete';
+  sid: string;
+}
+
+export interface SessionDeleteResponse {
+  ok: true;
+  currentSid: string;
+  sessions: Session[];
+}
+
+export interface SessionRenameRequest {
+  type: 'session/rename';
+  sid: string;
+  title: string;
+}
+
+export interface SessionRenameResponse {
+  ok: true;
+  session: Session;
 }
 
 export interface SaveConfigRequest {
@@ -192,6 +255,10 @@ export type RuntimeMessage =
   | SendChatRequest
   | ContentSnapshotMessage
   | GetChatStateRequest
-  | ResetChatStateRequest
   | SaveConfigRequest
-  | GetConfigRequest;
+  | GetConfigRequest
+  | SessionListRequest
+  | SessionCreateRequest
+  | SessionSwitchRequest
+  | SessionDeleteRequest
+  | SessionRenameRequest;

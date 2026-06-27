@@ -111,7 +111,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:18789/v1/chat/completions"
 - [ ] connector 会先判断是否命中 `shopping` / `social` / `video` skill，再把标签页摘要、skill 判定和会话历史一起发给大模型接口
 - [ ] 完善真实的 Playwright 扩展加载与交互测试
 - [x] `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
-- [ ] 会话管理
+- [x] 会话管理
 - [ ] 持久记忆
 - [x] markdown 渲染
-- [ ] 复制问题和答案
+- [x] 复制问题和答案

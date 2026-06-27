@@ -1,6 +1,8 @@
 import type { ChatStreamClientMessage } from '../../shared/types';
 import { runConnectorStream } from '../connector';
-import { getConfig, getHistory, saveHistory } from '../storage';
+import { appendMessages, getMessages } from '../message-store';
+import { getCurrentSid } from '../session-store';
+import { getConfig } from '../storage';
 import { listSnapshots } from '../tab-content-store';
 import type { BackgroundMessageHandler, StreamHandlerContext } from './types';
 
@@ -14,12 +16,11 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
     const assistantMessageId = crypto.randomUUID();
 
     try {
-      const [config, history] = await Promise.all([getConfig(), getHistory()]);
-      const userEntry = {
-        id: crypto.randomUUID(),
-        role: 'user' as const,
-        content: message.message,
-      };
+      const [config, currentSid] = await Promise.all([
+        getConfig(),
+        getCurrentSid(),
+      ]);
+      const history = await getMessages(currentSid);
 
       if (!context.isConnected()) {
         return;
@@ -65,11 +66,13 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
         return;
       }
 
-      const nextHistory = await saveHistory([
-        ...history,
-        userEntry,
+      const nextHistory = await appendMessages(currentSid, [
         {
-          id: assistantMessageId,
+          role: 'user',
+          content: message.message,
+        },
+        {
+          cid: assistantMessageId,
           role: 'assistant',
           content: result.reply,
           ...(result.reasoning ? { reasoning: result.reasoning } : {}),
@@ -80,6 +83,7 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
       context.postToPort({
         type: 'chat/stream:done',
         requestId: message.requestId,
+        sid: currentSid,
         result,
         history: nextHistory,
       });

@@ -20,6 +20,8 @@ interface StreamLlmResult {
   toolCalls?: ToolStreamDelta[];
 }
 
+export type LlmInputMessage = Pick<ChatMessage, 'role' | 'content'>;
+
 type GatewayOptions = Parameters<typeof streamText<GatewayTools>>[0] &
   Parameters<typeof generateText<GatewayTools>>[0];
 
@@ -33,7 +35,7 @@ function createProvider(config: LlmConfig) {
 
 function buildGatewayOptions(
   config: LlmConfig,
-  messages: ChatMessage[],
+  messages: LlmInputMessage[],
   abortSignal?: AbortSignal,
 ): GatewayOptions {
   const provider = createProvider(config);
@@ -116,7 +118,7 @@ function buildGatewayOptions(
 
 export async function requestLlm(
   config: LlmConfig,
-  messages: ChatMessage[],
+  messages: LlmInputMessage[],
 ): Promise<string> {
   try {
     const { text } = await generateText(buildGatewayOptions(config, messages));
@@ -134,7 +136,7 @@ export async function requestLlm(
 
 export async function streamLlm(
   config: LlmConfig,
-  messages: ChatMessage[],
+  messages: LlmInputMessage[],
   onDelta: StreamDeltaHandler,
   abortSignal?: AbortSignal,
 ): Promise<StreamLlmResult> {

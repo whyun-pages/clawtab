@@ -7,31 +7,84 @@
   </head>
   <body>
     <main class="app">
-      <header class="app__header">
-        <h1>ClawTab</h1>
-        <p>面向当前标签页内容的浏览器自动化助手</p>
+      <header class="app__toolbar">
+        <button
+          id="session-toggle"
+          class="toolbar__session"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="session-panel"
+        >
+          <span class="toolbar__session-label" id="session-label">新会话</span>
+          <span class="toolbar__session-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="toolbar__actions">
+          <button
+            id="session-new"
+            class="toolbar__icon-btn"
+            type="button"
+            title="新建会话"
+            aria-label="新建会话"
+          >
+            +
+          </button>
+          <button
+            id="settings-toggle"
+            class="toolbar__icon-btn"
+            type="button"
+            title="设置"
+            aria-label="设置"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="settings-panel"
+          >
+            ⚙
+          </button>
+        </div>
       </header>
 
-      <section class="settings">
-        <details>
-          <summary>大模型设置</summary>
-          <form id="config-form" class="settings__form">
-            <label class="settings__field">
-              <span>Base URL</span>
-              <input id="config-base-url" type="url" placeholder="http://127.0.0.1:18789/v1" />
-            </label>
-            <label class="settings__field">
-              <span>API Key</span>
-              <input id="config-api-key" type="password" placeholder="LLM API Key" />
-            </label>
-            <label class="settings__field">
-              <span>Model</span>
-              <input id="config-model" type="text" placeholder="openclaw/default" />
-            </label>
-            <p id="config-status" class="settings__status"></p>
-            <button class="composer__submit" type="submit">保存配置</button>
-          </form>
-        </details>
+      <section
+        id="session-panel"
+        class="panel panel--session"
+        role="dialog"
+        aria-label="会话列表"
+        hidden
+      >
+        <ul id="session-list" class="session-list"></ul>
+        <button
+          id="session-panel-new"
+          class="panel__primary"
+          type="button"
+        >
+          新建会话
+        </button>
+      </section>
+
+      <section
+        id="settings-panel"
+        class="panel panel--settings"
+        role="dialog"
+        aria-label="大模型设置"
+        hidden
+      >
+        <h2 class="panel__title">大模型设置</h2>
+        <form id="config-form" class="settings__form">
+          <label class="settings__field">
+            <span>Base URL</span>
+            <input id="config-base-url" type="url" placeholder="http://127.0.0.1:18789/v1" />
+          </label>
+          <label class="settings__field">
+            <span>API Key</span>
+            <input id="config-api-key" type="password" placeholder="LLM API Key" />
+          </label>
+          <label class="settings__field">
+            <span>Model</span>
+            <input id="config-model" type="text" placeholder="openclaw/default" />
+          </label>
+          <p id="config-status" class="settings__status"></p>
+          <button class="panel__primary" type="submit">保存配置</button>
+        </form>
       </section>
 
       <section id="messages" class="messages" aria-live="polite"></section>
@@ -44,7 +97,6 @@
           placeholder="问我当前网页在讲什么，或直接问价格 / 热点 / 视频总结..."
         ></textarea>
         <div class="composer__actions">
-          <button id="reset-button" class="composer__secondary" type="button">清空对话</button>
           <button id="submit-button" class="composer__submit" type="submit">发送</button>
         </div>
       </form>

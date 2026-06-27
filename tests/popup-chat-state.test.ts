@@ -11,7 +11,7 @@ describe('popup chat state', () => {
     setHistory([]);
     const assistant = appendMessage('assistant', '回答', 'assistant-1');
 
-    appendMessageToolCall(assistant.id, {
+    appendMessageToolCall(assistant.cid, {
       event: 'result',
       toolCallId: 'call-1',
       toolName: 'tabSnapshotGet',
@@ -20,8 +20,8 @@ describe('popup chat state', () => {
     });
 
     expect(getHistory()).toEqual([
-      {
-        id: 'assistant-1',
+      expect.objectContaining({
+        cid: 'assistant-1',
         role: 'assistant',
         content: '回答',
         toolCalls: [
@@ -33,7 +33,7 @@ describe('popup chat state', () => {
             output: { data: null },
           },
         ],
-      },
+      }),
     ]);
   });
 });

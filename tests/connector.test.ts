@@ -33,9 +33,12 @@ const config: LlmConfig = {
 
 const history: ChatMessage[] = [
   {
-    id: 'assistant-1',
+    cid: 'assistant-1',
+    sid: 'sess-1',
     role: 'assistant',
     content: '你好',
+    createdAt: 0,
+    seq: 0,
   },
 ];
 

@@ -5,8 +5,7 @@ export const inputElement =
   document.querySelector<HTMLTextAreaElement>('#chat-input');
 export const submitButton =
   document.querySelector<HTMLButtonElement>('#submit-button');
-export const resetButton =
-  document.querySelector<HTMLButtonElement>('#reset-button');
+
 export const configForm =
   document.querySelector<HTMLFormElement>('#config-form');
 export const baseUrlInput =
@@ -17,3 +16,21 @@ export const modelInput =
   document.querySelector<HTMLInputElement>('#config-model');
 export const configStatus =
   document.querySelector<HTMLElement>('#config-status');
+
+export const sessionToggleButton =
+  document.querySelector<HTMLButtonElement>('#session-toggle');
+export const sessionLabelElement =
+  document.querySelector<HTMLElement>('#session-label');
+export const sessionNewButton =
+  document.querySelector<HTMLButtonElement>('#session-new');
+export const sessionPanelElement =
+  document.querySelector<HTMLElement>('#session-panel');
+export const sessionPanelNewButton =
+  document.querySelector<HTMLButtonElement>('#session-panel-new');
+export const sessionListElement =
+  document.querySelector<HTMLUListElement>('#session-list');
+
+export const settingsToggleButton =
+  document.querySelector<HTMLButtonElement>('#settings-toggle');
+export const settingsPanelElement =
+  document.querySelector<HTMLElement>('#settings-panel');

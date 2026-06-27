@@ -5,7 +5,7 @@ import type {
   LlmConfig,
   PageSnapshot,
 } from '../shared/types';
-import { requestLlm, streamLlm } from './llm-gateway';
+import { type LlmInputMessage, requestLlm, streamLlm } from './llm-gateway';
 import { decideSkill } from './skills';
 import type { LlmStreamDelta } from './think-tag-parser';
 
@@ -64,12 +64,14 @@ function buildMissingConfigReply(_relatedTabs: PageSnapshot[]): string {
   ].join('\n');
 }
 
-function trimHistory(history: ChatMessage[]): ChatMessage[] {
-  return history.slice(-MAX_HISTORY_LENGTH).map((entry) => ({
-    id: entry.id,
-    role: entry.role,
-    content: entry.content,
-  }));
+function trimHistory(history: ChatMessage[]): LlmInputMessage[] {
+  return history
+    .slice(-MAX_HISTORY_LENGTH)
+    .filter((entry) => entry.role !== 'system' && !!entry.toolCalls?.length)
+    .map((entry) => ({
+      role: entry.role,
+      content: entry.content,
+    }));
 }
 
 export async function runConnector(
@@ -90,17 +92,13 @@ export async function runConnector(
     };
   }
 
-  const gatewayMessages: ChatMessage[] = [
+  const gatewayMessages: LlmInputMessage[] = [
     {
-      id: crypto.randomUUID(),
       role: 'system',
       content: buildSystemPrompt(),
     },
-    ...trimHistory(_history).filter(
-      (entry) => entry.role !== 'system' && !!entry.toolCalls?.length,
-    ),
+    ...trimHistory(_history),
     {
-      id: crypto.randomUUID(),
       role: 'user',
       content: message,
     },
@@ -142,17 +140,13 @@ export async function runConnectorStream(
     };
   }
 
-  const gatewayMessages: ChatMessage[] = [
+  const gatewayMessages: LlmInputMessage[] = [
     {
-      id: crypto.randomUUID(),
       role: 'system',
       content: buildSystemPrompt(),
     },
-    ...trimHistory(_history).filter(
-      (entry) => entry.role !== 'system' && !!entry.toolCalls?.length,
-    ),
+    ...trimHistory(_history),
     {
-      id: crypto.randomUUID(),
       role: 'user',
       content: message,
     },

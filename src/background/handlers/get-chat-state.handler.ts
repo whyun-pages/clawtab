@@ -2,7 +2,9 @@ import type {
   GetChatStateRequest,
   GetChatStateResponse,
 } from '../../shared/types';
-import { getConfig, getHistory } from '../storage';
+import { getMessages } from '../message-store';
+import { getCurrentSid, listSessions } from '../session-store';
+import { getConfig } from '../storage';
 import type { BackgroundMessageHandler, RuntimeHandlerContext } from './types';
 
 export const getChatStateHandler: BackgroundMessageHandler<
@@ -12,12 +14,21 @@ export const getChatStateHandler: BackgroundMessageHandler<
 > = {
   type: 'chat/state:get',
   async process() {
-    const [config, history] = await Promise.all([getConfig(), getHistory()]);
+    const [config, currentSid] = await Promise.all([
+      getConfig(),
+      getCurrentSid(),
+    ]);
+    const [history, sessions] = await Promise.all([
+      getMessages(currentSid),
+      listSessions(),
+    ]);
 
     return {
       ok: true,
       config,
       history,
+      currentSid,
+      sessions,
     };
   },
 };

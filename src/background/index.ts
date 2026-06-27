@@ -20,15 +20,25 @@ import {
 
 chrome.runtime.onInstalled.addListener(() => {
   defaultLogger.info('ClawTab installed.');
+  void cleanupLegacyChatHistory();
   void loadSnapshotsFromLocalStorage().catch((error) => {
     defaultLogger.error('Failed to load snapshots from local storage.', error);
   });
 });
 chrome.runtime.onStartup.addListener(() => {
+  void cleanupLegacyChatHistory();
   void loadSnapshotsFromLocalStorage().catch((error) => {
     defaultLogger.error('Failed to load snapshots from local storage.', error);
   });
 });
+
+async function cleanupLegacyChatHistory(): Promise<void> {
+  try {
+    await chrome.storage.local.remove('chat-history');
+  } catch (error) {
+    defaultLogger.error('Failed to remove legacy chat-history key.', error);
+  }
+}
 
 // 异步分支需 return true 并保持 sendResponse 在异步完成后调用，否则通道会提前关闭。
 chrome.runtime.onMessage.addListener(

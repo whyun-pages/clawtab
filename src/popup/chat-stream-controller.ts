@@ -28,16 +28,22 @@ export function startChatStream(
   const assistantMessageId = crypto.randomUUID();
   activeRequestId = requestId;
   activeAssistantMessage = {
-    id: assistantMessageId,
+    cid: assistantMessageId,
+    sid: '',
     role: 'assistant',
     content: '',
+    createdAt: Date.now(),
+    seq: 0,
   };
   context.setSubmitting(true);
 
   context.renderRealtimeMessage({
-    id: userMessageId,
+    cid: userMessageId,
+    sid: '',
     role: 'user',
     content: message,
+    createdAt: Date.now(),
+    seq: 0,
   });
   context.renderRealtimeMessage(activeAssistantMessage);
 

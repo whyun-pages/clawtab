@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type {
-  ChatMessage,
-  ChatStreamServerMessage,
-} from '../src/shared/types';
+import type { ChatMessage, ChatStreamServerMessage } from '../src/shared/types';
 import { CHAT_STREAM_PORT } from '../src/shared/types';
 
 describe('popup chat stream controller', () => {
@@ -16,9 +13,8 @@ describe('popup chat stream controller', () => {
 
   it('renders stream deltas into the realtime assistant placeholder only', async () => {
     const { port, messageListeners } = stubChromePort();
-    const { startChatStream } = await import(
-      '../src/popup/chat-stream-controller'
-    );
+    const { startChatStream } =
+      await import('../src/popup/chat-stream-controller');
     const context = createContext();
 
     startChatStream('问题', context);
@@ -44,13 +40,26 @@ describe('popup chat stream controller', () => {
 
   it('syncs final history and renders history once when the stream is done', async () => {
     const { port, messageListeners } = stubChromePort();
-    const { startChatStream } = await import(
-      '../src/popup/chat-stream-controller'
-    );
+    const { startChatStream } =
+      await import('../src/popup/chat-stream-controller');
     const context = createContext();
     const history: ChatMessage[] = [
-      { id: 'user-final', role: 'user', content: '问题' },
-      { id: 'assistant-final', role: 'assistant', content: '最终回答' },
+      {
+        cid: 'user-final',
+        sid: 'sess-1',
+        role: 'user',
+        content: '问题',
+        createdAt: 0,
+        seq: 0,
+      },
+      {
+        cid: 'assistant-final',
+        sid: 'sess-1',
+        role: 'assistant',
+        content: '最终回答',
+        createdAt: 1,
+        seq: 1,
+      },
     ];
 
     startChatStream('问题', context);
@@ -59,6 +68,7 @@ describe('popup chat stream controller', () => {
     messageListeners[0]({
       type: 'chat/stream:done',
       requestId,
+      sid: 'sess-1',
       result: {
         reply: '最终回答',
         decision: { skill: null, reason: '' },

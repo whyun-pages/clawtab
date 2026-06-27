@@ -1,6 +1,8 @@
 import type { SendChatRequest, SendChatResponse } from '../../shared/types';
 import { runConnector } from '../connector';
-import { getConfig, getHistory, saveHistory } from '../storage';
+import { appendMessages, getMessages } from '../message-store';
+import { getCurrentSid } from '../session-store';
+import { getConfig } from '../storage';
 import { listSnapshots } from '../tab-content-store';
 import type { BackgroundMessageHandler, RuntimeHandlerContext } from './types';
 
@@ -11,23 +13,25 @@ export const sendChatHandler: BackgroundMessageHandler<
 > = {
   type: 'chat/send',
   async process(message) {
-    const [config, history] = await Promise.all([getConfig(), getHistory()]);
-    const userEntry = {
-      id: crypto.randomUUID(),
-      role: 'user' as const,
-      content: message.message,
-    };
+    const [config, currentSid] = await Promise.all([
+      getConfig(),
+      getCurrentSid(),
+    ]);
+    const history = await getMessages(currentSid);
+
     const result = await runConnector(
       message.message,
       listSnapshots(),
       config,
       history,
     );
-    const nextHistory = await saveHistory([
-      ...history,
-      userEntry,
+
+    const nextHistory = await appendMessages(currentSid, [
       {
-        id: crypto.randomUUID(),
+        role: 'user',
+        content: message.message,
+      },
+      {
         role: 'assistant',
         content: result.reply,
       },
