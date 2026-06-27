@@ -1,3 +1,4 @@
+import { defaultLogger } from '../../lib/logger';
 import type { RuntimeMessage } from '../../shared/types';
 
 export interface SendMessageOptions {
@@ -21,10 +22,15 @@ export async function sendMessage<TResponse = unknown>(
         message,
       );
     } catch (error) {
-      if (!isExtensionContextInvalidatedError(error) || attempt >= maxRetries) {
+      if (!isExtensionContextInvalidatedError(error)) {
         throw error;
       }
-
+      if (attempt >= maxRetries) {
+        throw error;
+      }
+      defaultLogger.debug(
+        `sendMessage attempt ${attempt + 1} failed (extension context invalidated). Retrying in ${retryDelayMs}ms...`,
+      );
       await delay(retryDelayMs);
     }
   }
@@ -33,7 +39,7 @@ export async function sendMessage<TResponse = unknown>(
 export function isExtensionContextInvalidatedError(error: unknown): boolean {
   return (
     error instanceof Error &&
-    error.message.includes('Extension context invalidated')
+    error.message?.toLowerCase()?.includes('extension context invalidated')
   );
 }
 

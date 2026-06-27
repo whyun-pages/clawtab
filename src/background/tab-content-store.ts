@@ -79,15 +79,19 @@ export async function loadSnapshotsFromLocalStorage(): Promise<void> {
     }
     urlToTabIdMap.get(tab.url)?.add(tab.id!);
   }
+  defaultLogger.info('current tabs url set:', tabsUrlSet);
   for (const snapshot of storeSnapshots) {
     if (!tabsUrlSet.has(snapshot.url)) {
       defaultLogger.info(
-        `Removing snapshot for title: ${snapshot.title}, url: ${snapshot.url}  , updatedAt: ${snapshot.updatedAt} as the tab is closed`,
+        `Removing snapshot for title: ${snapshot.title}, url: ${snapshot.url} as the tab is closed`,
       );
       await chrome.storage.local.remove(getStorageKey(snapshot.url));
       continue;
     }
     snapshots.set(snapshot.url, snapshot);
+    defaultLogger.info(
+      `Loaded snapshot for title: ${snapshot.title}, url: ${snapshot.url} from local storage`,
+    );
   }
 }
 export function listSnapshots(): PageSnapshot[] {
