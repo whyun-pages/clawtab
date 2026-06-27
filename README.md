@@ -2,49 +2,52 @@
 
 运行在 Chrome 插件环境中的浏览器自动化助手原型。
 
-## 已初始化内容
+## 已实现能力
 
-- TypeScript + ESM 工程
-- Manifest V3 Chrome 扩展骨架
-- `background` / `content script` / `popup` 三个入口
-- 简化版 LLM connector 与内置 skills 调度规则
-- `vitest` 单元测试
-- `playwright` 端到端测试脚手架
+- TypeScript + ESM + Vite 构建的 Manifest V3 扩展骨架
+- `background` / `content script` / `popup`（兼 side panel）三个入口
+- 通过 Mozilla Readability + NodeHtmlMarkdown 抽取页面正文为 markdown
+- 基于 AI SDK 的 OpenAI 兼容大模型接入，支持流式输出、思考过程与工具调用
+- 内置 `tabSnapshotListBasicTool` / `tabSnapshotGet` 两个工具，由 system prompt 强制按顺序调用
+- 多会话支持：会话与消息持久化到 IndexedDB，配置持久化到 `chrome.storage.local`
+- popup 支持 markdown 渲染、思考过程展开、工具调用渲染、消息复制、Enter / Shift+Enter 快捷键
+- Sentry Browser SDK 错误上报
+- `vitest` 单元测试 + `playwright` 端到端脚手架
 
 ## 项目文档
 
 - 架构说明：`docs/architecture.md`
 - 代码参考：`docs/code-reference.md`
 - 消息协议：`docs/background-message-protocol.md`
+- 流式时序：`docs/streaming-chat-sequence.md`
 
 ## 本地开发
 
-```powershell
+```bash
 pnpm install
 pnpm build
 ```
 
-构建后产物在 `dist/`，可在 Chrome 扩展管理页以“加载已解压的扩展程序”方式加载。
+构建产物在 `dist/`，可在 Chrome 扩展管理页以"加载已解压的扩展程序"方式加载。`pnpm build` 会跑两次 Vite：第一次产出 popup、background 与静态资源，第二次以 `--mode content` 产出 `content.js`。
 
 ## 常用命令
 
-```powershell
-pnpm build
-pnpm dev
-pnpm typecheck
-pnpm test
-pnpm test:e2e
+```bash
+pnpm build            # 完整构建
+pnpm dev              # 监听模式构建（popup + background）
+pnpm dev:content      # 监听模式构建 content script
+pnpm typecheck        # tsc --noEmit
+pnpm lint             # eslint
+pnpm test             # vitest 单元测试
+pnpm test:e2e         # playwright 端到端测试
+pnpm package:chrome   # 构建后打 zip 到 releases/
 ```
 
-## 当前实现说明
-
-- `content script` 会抓取页面标题、URL 和正文片段并上报给 `background`
-- `popup` 提供聊天界面和大模型配置表单
-- 当前真实接入 OpenAI-compatible Chat Completions 接口：`POST /v1/chat/completions`
+Sentry DSN 通过环境变量 `VITE_SENTRY_DSN` 注入，可参考根目录的 `.env.example`。
 
 ## 大模型配置
 
-需要准备兼容 OpenAI Chat Completions 的 Base URL、API Key 和模型名。
+在 popup 设置面板填写 OpenAI 兼容接口的 Base URL、API Key 与 Model 名称。建议从一个本地兼容 gateway（如 `http://127.0.0.1:18789/v1`）入手验证。
 
 ### 验证 chat completions 接口
 
@@ -106,12 +109,21 @@ $body = @{
 Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:18789/v1/chat/completions" -Headers $headers -Body $body
 ```
 
+## 注意事项
+
+- 插件需要 `tabs` 权限来下发 `url-changed` 通知和清理已关闭标签页的快照
+- 标签页快照按 URL 索引并持久化到 `chrome.storage.local`，service worker 启动时会过滤掉已关闭的标签页
+- 大模型每轮最多 5 个 step（`stopWhen: stepCountIs(5)`），其中 step 0 / step 1 被强制要求调用工具
+
 ## TODO
 
-- [ ] connector 会先判断是否命中 `shopping` / `social` / `video` skill，再把标签页摘要、skill 判定和会话历史一起发给大模型接口
-- [ ] 完善真实的 Playwright 扩展加载与交互测试
-- [x] `background` 会把聊天历史和 connector 配置持久化到 `chrome.storage.local`
-- [x] 会话管理
-- [ ] 持久记忆
+- [x] 持久化聊天历史与扩展配置（IndexedDB + `chrome.storage.local`）
+- [x] 多会话管理
 - [x] markdown 渲染
 - [x] 复制问题和答案
+- [x] 流式输出 + 思考过程展示
+- [x] 工具调用：标签页列表 / 标签页正文
+- [ ] 接入更多工具（搜索、剪贴板、跨页操作、字幕抓取等）
+- [ ] 完善真实的 Playwright 扩展加载与交互测试
+- [ ] 持久化长期记忆
+- [ ] 视频 / 音频专用 extractor
