@@ -457,6 +457,132 @@ body {
   font: 12px/1.45 Consolas, 'Liberation Mono', monospace;
 }
 
+.message__tool-label {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.message__tool-output {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.message__tool-output:not(.message__tool-output--html) {
+  white-space: pre-wrap;
+  font: 12px/1.45 Consolas, 'Liberation Mono', monospace;
+}
+
+.message__tool-output--html > :first-child {
+  margin-top: 0;
+}
+
+.message__tool-output--html > :last-child {
+  margin-bottom: 0;
+}
+
+.message__tool-output--html h1,
+.message__tool-output--html h2,
+.message__tool-output--html h3,
+.message__tool-output--html h4,
+.message__tool-output--html h5,
+.message__tool-output--html h6 {
+  margin: 10px 0 6px;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.message__tool-output--html h1 {
+  font-size: 14px;
+}
+
+.message__tool-output--html p,
+.message__tool-output--html ul,
+.message__tool-output--html ol,
+.message__tool-output--html blockquote,
+.message__tool-output--html pre,
+.message__tool-output--html table {
+  margin: 0 0 6px;
+}
+
+.message__tool-output--html ul,
+.message__tool-output--html ol {
+  padding-left: 18px;
+}
+
+.message__tool-output--html li + li {
+  margin-top: 2px;
+}
+
+.message__tool-output--html blockquote {
+  padding-left: 8px;
+  border-left: 2px solid #d1d5db;
+  color: #6b7280;
+}
+
+.message__tool-output--html a {
+  color: #2563eb;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.message__tool-output--html a:hover {
+  text-decoration: underline;
+}
+
+.message__tool-output--html code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  font: 11.5px/1.45 Consolas, 'Liberation Mono', monospace;
+}
+
+.message__tool-output--html pre {
+  padding: 8px;
+  overflow-x: auto;
+  border-radius: 6px;
+  background: #111827;
+  color: #f9fafb;
+  font-size: 11.5px;
+}
+
+.message__tool-output--html pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.message__tool-output--html img {
+  max-width: 100%;
+  height: auto;
+}
+
+.message__tool-output--html table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.message__tool-output--html th,
+.message__tool-output--html td {
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+}
+
 .composer {
   padding: 16px;
   display: grid;

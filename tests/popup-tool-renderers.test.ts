@@ -36,7 +36,9 @@ describe('popup tool renderers', () => {
       '<pre class="message__tool-input">https://example.com/shop</pre>',
     );
     expect(html).toContain('<div class="message__tool-label">输出</div>');
-    expect(html).toContain('<pre class="message__tool-output">');
+    expect(html).toContain(
+      '<div class="message__tool-output message__tool-output--html">',
+    );
     expect(html).not.toContain('&quot;tabUrl&quot;');
     expect(html).not.toContain('&lt;script&gt;');
   });
@@ -54,6 +56,7 @@ describe('popup tool renderers', () => {
     expect(html).toContain('<div class="message__tool-label">输入</div>');
     expect(html).toContain('<pre class="message__tool-input"></pre>');
     expect(html).toContain('<div class="message__tool-label">输出</div>');
+    expect(html).toContain('<pre class="message__tool-output">');
     expect(html).not.toContain('&lt;script&gt;');
   });
 });

@@ -8,6 +8,10 @@ import { AbstractToolRenderer } from './abstract-tool.renderer';
 export class TabSnapshotGetRenderer extends AbstractToolRenderer {
   public readonly name: string = '获取标签快照';
 
+  public override get isOutputHtml(): boolean {
+    return true;
+  }
+
   public get input(): string {
     const result = tabSnapshotGetInputSchema.safeParse(this.rawInput);
     if (!result.success) {
@@ -30,7 +34,11 @@ export class TabSnapshotGetRenderer extends AbstractToolRenderer {
     const pageData = page.data;
     const markdown = `
 # ${pageData.title}
+
 > ${pageData.url}
+
+<br />
+
 ${pageData.text}
 `;
     const html = renderMarkdown(markdown);

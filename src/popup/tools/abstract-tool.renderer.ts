@@ -37,13 +37,21 @@ export abstract class AbstractToolRenderer {
 
     return this.formatOutput(this.toolStreamDelta.output);
   }
+  public get isOutputHtml(): boolean {
+    return false;
+  }
   public render(): string {
-    return `<details class="message__tool-call"><summary>工具调用：${escapeHtml(
+    const outputContent = this.output ?? '';
+    const outputHtml = this.isOutputHtml
+      ? `<div class="message__tool-output message__tool-output--html">${outputContent}</div>`
+      : `<pre class="message__tool-output">${escapeHtml(outputContent)}</pre>`;
+
+    return `<details class="message__tool-call" data-tool-call-id="${escapeHtml(
+      this.toolStreamDelta.toolCallId,
+    )}"><summary>工具调用：${escapeHtml(
       this.name,
     )}</summary><div class="message__tool-label">输入</div><pre class="message__tool-input">${escapeHtml(
       this.input,
-    )}</pre><div class="message__tool-label">输出</div><pre class="message__tool-output">${
-      this.output || ''
-    }</pre></details>`;
+    )}</pre><div class="message__tool-label">输出</div>${outputHtml}</details>`;
   }
 }
