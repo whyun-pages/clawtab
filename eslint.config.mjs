@@ -27,10 +27,10 @@ export default defineConfig([
     ignores: ['dist/', 'coverage/', 'eslint.config.mjs'],
   },
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
   {
     files: ['**/*.ts'],
+    extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {

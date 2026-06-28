@@ -9,6 +9,7 @@ import type {
 const snapshots = new Map<TabUrl, PageSnapshot>();
 const tabIdToUrlMap = new Map<TabId, TabUrl>();
 const urlToTabIdMap = new Map<TabUrl, Set<TabId>>();
+const snapshotWaiters = new Map<TabUrl, Set<() => void>>();
 const STORAGE_KEY_PREFIX = 'tab-content-store-';
 function getStorageKey(url: TabUrl): string {
   return `${STORAGE_KEY_PREFIX}${url}`;
@@ -26,6 +27,40 @@ export async function upsertSnapshot(snapshot: PageSnapshot): Promise<void> {
     urlToTabIdMap.set(snapshot.url, new Set());
   }
   urlToTabIdMap.get(snapshot.url)?.add(snapshot.tabId);
+
+  const waiters = snapshotWaiters.get(snapshot.url);
+  if (waiters && waiters.size > 0) {
+    for (const notify of [...waiters]) {
+      notify();
+    }
+  }
+}
+
+export function waitForSnapshot(
+  url: TabUrl,
+  timeoutMs: number,
+): Promise<boolean> {
+  if (snapshots.has(url)) {
+    return Promise.resolve(true);
+  }
+  return new Promise<boolean>((resolve) => {
+    const settle = (ready: boolean) => {
+      const current = snapshotWaiters.get(url);
+      current?.delete(notify);
+      if (current && current.size === 0) {
+        snapshotWaiters.delete(url);
+      }
+      clearTimeout(timer);
+      resolve(ready);
+    };
+    const notify = () => settle(true);
+    const timer = setTimeout(() => settle(false), timeoutMs);
+
+    if (!snapshotWaiters.has(url)) {
+      snapshotWaiters.set(url, new Set());
+    }
+    snapshotWaiters.get(url)!.add(notify);
+  });
 }
 
 export async function removeSnapshot(tabId: TabId): Promise<void> {

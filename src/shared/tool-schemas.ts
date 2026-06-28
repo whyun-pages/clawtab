@@ -25,3 +25,18 @@ export const tabSnapshotListIdsOutputSchema = z.object({
     }),
   ),
 });
+
+export const tabOpenInBackgroundInputSchema = z.object({
+  url: z.string().url(),
+});
+
+export const tabOpenInBackgroundOutputSchema = z.object({
+  data: z
+    .object({
+      tabId: z.number(),
+      url: z.string(),
+      reused: z.boolean(),
+      snapshotReady: z.boolean(),
+    })
+    .nullable(),
+});
