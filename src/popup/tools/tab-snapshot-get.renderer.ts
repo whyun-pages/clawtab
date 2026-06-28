@@ -37,8 +37,6 @@ export class TabSnapshotGetRenderer extends AbstractToolRenderer {
 
 > ${pageData.url}
 
-<br />
-
 ${pageData.text}
 `;
     const html = renderMarkdown(markdown);
