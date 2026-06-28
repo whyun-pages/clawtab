@@ -127,3 +127,4 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:18789/v1/chat/completions"
 - [ ] 完善真实的 Playwright 扩展加载与交互测试
 - [ ] 持久化长期记忆
 - [ ] 视频 / 音频专用 extractor
+- [ ] 定时任务
