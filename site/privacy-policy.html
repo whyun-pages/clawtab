@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>隐私政策 — ClawTab</title>
+  <meta name="description" content="ClawTab Chrome 扩展的隐私政策，说明数据处理方式、存储位置与用户控制权。" />
+  <link rel="icon" type="image/png" href="assets/icon-128.png" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container">
+      <a class="brand" href="./">
+        <img src="assets/icon-128.png" alt="ClawTab logo" />
+        <span class="brand-name">ClawTab</span>
+      </a>
+      <div class="lang-switch">
+        <a href="privacy-policy.html" class="active">中文</a>
+        <span class="sep">|</span>
+        <a href="en/privacy-policy.html">English</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="doc">
+    <div class="container doc-inner">
+      <a class="back-link" href="./">← 返回首页</a>
+
+      <h1>ClawTab 隐私政策</h1>
+      <p class="effective-date">生效日期：2026-06-21</p>
+
+      <p>
+        ClawTab 是一款 Chrome 扩展，用于帮助用户对当前浏览器标签页的内容进行提问。
+      </p>
+
+      <h2>扩展处理的数据</h2>
+      <p>为提供核心功能，ClawTab 可能处理以下数据：</p>
+      <ul>
+        <li>网页内容：页面标题、URL，以及提取的文章或页面正文文本。</li>
+        <li>用户输入：在 ClawTab 聊天框中输入的问题。</li>
+        <li>聊天记录：此前的用户消息和助手消息。</li>
+        <li>扩展设置：模型 Base URL、API Key 与模型名称。</li>
+      </ul>
+
+      <h2>数据用途</h2>
+      <p>
+        ClawTab 使用页面内容和用户问题，通过用户自行配置的 OpenAI 兼容 chat completion 接口生成回答。
+      </p>
+      <p>
+        扩展将聊天记录和模型配置保存在 Chrome 本地存储中，以便侧边栏可以恢复之前的状态。
+      </p>
+
+      <h2>数据共享</h2>
+      <p>ClawTab 不运营自己的后端服务。</p>
+      <p>
+        当用户发送问题时，扩展会将相关的页面内容、用户问题以及对话上下文发送到用户配置的模型接口。
+        该接口的隐私和数据保留策略由用户所选择的接口提供方控制。
+      </p>
+
+      <h2>API Key</h2>
+      <p>
+        用户输入的 API Key 保存在本地 Chrome 存储中，仅用于调用用户配置的模型接口。
+      </p>
+
+      <h2>远程代码</h2>
+      <p>
+        ClawTab 不会有意加载远程可执行代码。扩展包内包含其自身的 JavaScript 打包产物。
+      </p>
+
+      <h2>用户控制</h2>
+      <p>
+        用户可以通过扩展界面清除聊天记录。也可以通过 Chrome 扩展存储控制面板或卸载扩展的方式移除扩展数据。
+      </p>
+
+      <h2>联系我们</h2>
+      <p>
+        如有隐私相关问题，请通过项目
+        <a href="https://github.com/whyun-pages/clawtab/issues" target="_blank" rel="noopener">GitHub Issues</a>
+        提交反馈。
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© 2026 ClawTab</div>
+      <div class="footer-links">
+        <a href="./">首页</a>
+        <a href="https://github.com/whyun-pages/clawtab" target="_blank" rel="noopener">GitHub</a>
+        <a href="en/privacy-policy.html">English</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

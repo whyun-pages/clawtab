@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClawTab — Chrome 侧边栏 AI 网页问答扩展</title>
+  <meta name="description" content="ClawTab 是一个运行在 Chrome 侧边栏的 AI 网页问答扩展，基于当前网页内容与你配置的大模型进行对话，支持多会话与工具调用。" />
+  <link rel="icon" type="image/png" href="assets/icon-128.png" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container">
+      <a class="brand" href="./">
+        <img src="assets/icon-128.png" alt="ClawTab logo" />
+        <span class="brand-name">ClawTab</span>
+      </a>
+      <div class="lang-switch">
+        <a href="./" class="active">中文</a>
+        <span class="sep">|</span>
+        <a href="en/">English</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container">
+      <img src="assets/logo.png" alt="ClawTab" class="logo-lg" />
+      <h1>在 Chrome 侧边栏，与网页对话</h1>
+      <p class="tagline">
+        ClawTab 基于当前网页内容进行 AI 问答，支持多会话与工具调用，
+        让你无需切换标签页就能理解、提炼、追问所看到的一切。
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#" aria-label="Add ClawTab to Chrome">添加到 Chrome</a>
+        <a class="btn btn-secondary" href="https://github.com/whyun-pages/clawtab" target="_blank" rel="noopener">在 GitHub 上查看</a>
+      </div>
+      <p class="cta-note">Chrome Web Store 上架后将替换为商店安装链接。</p>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="container">
+      <div class="section-title">
+        <h2>主要功能</h2>
+        <p>为浏览网页时的思考与追问而生。</p>
+      </div>
+      <div class="features">
+        <div class="feature-card">
+          <h3>侧边栏对话</h3>
+          <p>在 Chrome 侧边栏中与 AI 交流，无需离开当前页面。</p>
+        </div>
+        <div class="feature-card">
+          <h3>网页正文抽取</h3>
+          <p>基于 Mozilla Readability + NodeHtmlMarkdown 提取标题、URL 与正文，按 URL 缓存快照。</p>
+        </div>
+        <div class="feature-card">
+          <h3>OpenAI 兼容接口</h3>
+          <p>连接你自己的 OpenAI Chat Completions 兼容大模型，Base URL 与 API Key 由你掌控。</p>
+        </div>
+        <div class="feature-card">
+          <h3>流式输出 & 思考过程</h3>
+          <p>实时看到模型的回答生成，并可展开查看 reasoning 思考过程。</p>
+        </div>
+        <div class="feature-card">
+          <h3>内置工具调用</h3>
+          <p>tabSnapshotListBasic 列出标签页、tabSnapshotGet 获取网页正文，结果以 Markdown 渲染。</p>
+        </div>
+        <div class="feature-card">
+          <h3>多会话管理</h3>
+          <p>创建、切换、删除独立的对话，历史消息持久化到 IndexedDB。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="container">
+      <div class="section-title">
+        <h2>如何使用</h2>
+        <p>四步开始你的第一次网页问答。</p>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <span class="step-num">1</span>
+          <div class="step-body">
+            <strong>安装并打开侧边栏</strong>
+            <p>从 Chrome Web Store 安装 ClawTab，点击工具栏图标或使用 Chrome 侧边栏入口。</p>
+          </div>
+        </li>
+        <li class="step">
+          <span class="step-num">2</span>
+          <div class="step-body">
+            <strong>填写大模型设置</strong>
+            <p>在设置面板填入 OpenAI 兼容接口的 <code>Base URL</code>、<code>API Key</code> 与 <code>Model</code> 名称。</p>
+          </div>
+        </li>
+        <li class="step">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <strong>打开任意网页</strong>
+            <p>ClawTab 会自动抽取当前页面的标题、URL 与正文，作为对话上下文。</p>
+          </div>
+        </li>
+        <li class="step">
+          <span class="step-num">4</span>
+          <div class="step-body">
+            <strong>开始提问</strong>
+            <p>在输入框中提出问题，或新建会话开始独立对话；使用 Enter 发送、Shift+Enter 换行。</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <div class="container">
+      <div class="privacy-callout">
+        <h2>数据由你掌控</h2>
+        <p>
+          ClawTab 不提供自有云端模型服务。用户输入、网页文本和聊天上下文会发送到你自行配置的大模型接口。
+          API Key、模型配置、会话与聊天历史以及网页快照默认保存在本地浏览器存储中
+          （<code>chrome.storage.local</code> + IndexedDB），不会上传到第三方服务。
+        </p>
+        <a class="btn btn-secondary" href="privacy-policy.html">查看完整隐私政策</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© 2026 ClawTab</div>
+      <div class="footer-links">
+        <a href="https://github.com/whyun-pages/clawtab" target="_blank" rel="noopener">GitHub</a>
+        <a href="privacy-policy.html">隐私政策</a>
+        <a href="en/">English</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

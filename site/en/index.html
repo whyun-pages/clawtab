@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClawTab — AI Q&amp;A for any web page, in your Chrome side panel</title>
+  <meta name="description" content="ClawTab is a Chrome extension that turns your side panel into an AI chat about the page you're reading. Bring your own OpenAI-compatible model. Multi-session, tool calling, streaming." />
+  <link rel="icon" type="image/png" href="../assets/icon-128.png" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container">
+      <a class="brand" href="./">
+        <img src="../assets/icon-128.png" alt="ClawTab logo" />
+        <span class="brand-name">ClawTab</span>
+      </a>
+      <div class="lang-switch">
+        <a href="../">中文</a>
+        <span class="sep">|</span>
+        <a href="./" class="active">English</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container">
+      <img src="../assets/logo.png" alt="ClawTab" class="logo-lg" />
+      <h1>Chat with any web page, right in your side panel</h1>
+      <p class="tagline">
+        ClawTab reads the page you're on and lets you ask questions,
+        summarize, and follow up — powered by the OpenAI-compatible model
+        of your choice. Multi-session and tool calling included.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#" aria-label="Add ClawTab to Chrome">Add to Chrome</a>
+        <a class="btn btn-secondary" href="https://github.com/whyun-pages/clawtab" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+      <p class="cta-note">The install link will point to the Chrome Web Store once ClawTab is published.</p>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="container">
+      <div class="section-title">
+        <h2>Features</h2>
+        <p>Built for the thoughts and follow-ups that surface while you browse.</p>
+      </div>
+      <div class="features">
+        <div class="feature-card">
+          <h3>Side-panel chat</h3>
+          <p>Talk to your model without leaving the page you're reading.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Readable content extraction</h3>
+          <p>Uses Mozilla Readability + NodeHtmlMarkdown to pull the title, URL, and article body, cached per URL.</p>
+        </div>
+        <div class="feature-card">
+          <h3>OpenAI-compatible endpoints</h3>
+          <p>Bring your own <code>Base URL</code>, <code>API Key</code>, and <code>Model</code>. Nothing routes through us.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Streaming + reasoning view</h3>
+          <p>Watch answers stream in real time and expand the reasoning trace when your model provides one.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Built-in tools</h3>
+          <p><code>tabSnapshotListBasic</code> lists open tabs and <code>tabSnapshotGet</code> fetches page bodies — results render as Markdown.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Multi-session</h3>
+          <p>Create, switch, and delete independent conversations. History persists in IndexedDB.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="container">
+      <div class="section-title">
+        <h2>How it works</h2>
+        <p>Four steps from install to your first page-aware answer.</p>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <span class="step-num">1</span>
+          <div class="step-body">
+            <strong>Install and open the side panel</strong>
+            <p>Install ClawTab from the Chrome Web Store, then click the toolbar icon or open Chrome's side panel.</p>
+          </div>
+        </li>
+        <li class="step">
+          <span class="step-num">2</span>
+          <div class="step-body">
+            <strong>Enter your model settings</strong>
+            <p>In the settings panel, fill in an OpenAI-compatible <code>Base URL</code>, <code>API Key</code>, and <code>Model</code> name.</p>
+          </div>
+        </li>
+        <li class="step">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <strong>Open any web page</strong>
+            <p>ClawTab automatically extracts the current page's title, URL, and body text as context for the conversation.</p>
+          </div>
+        </li>
+        <li class="step">
+          <span class="step-num">4</span>
+          <div class="step-body">
+            <strong>Ask away</strong>
+            <p>Type in the input box or start a new session for an independent thread. Enter sends, Shift+Enter for a newline.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <div class="container">
+      <div class="privacy-callout">
+        <h2>Your data stays yours</h2>
+        <p>
+          ClawTab does not operate its own cloud model service. Your input, page text, and chat context
+          are sent to the model endpoint you configure. API keys, model settings, sessions, chat history,
+          and page snapshots are stored locally in your browser (<code>chrome.storage.local</code> + IndexedDB)
+          and are not uploaded to any third-party service.
+        </p>
+        <a class="btn btn-secondary" href="privacy-policy.html">Read the full privacy policy</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© 2026 ClawTab</div>
+      <div class="footer-links">
+        <a href="https://github.com/whyun-pages/clawtab" target="_blank" rel="noopener">GitHub</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="../">中文</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

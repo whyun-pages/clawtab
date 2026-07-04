@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — ClawTab</title>
+  <meta name="description" content="Privacy policy for the ClawTab Chrome extension: what data is processed, where it is stored, and how users control it." />
+  <link rel="icon" type="image/png" href="../assets/icon-128.png" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container">
+      <a class="brand" href="./">
+        <img src="../assets/icon-128.png" alt="ClawTab logo" />
+        <span class="brand-name">ClawTab</span>
+      </a>
+      <div class="lang-switch">
+        <a href="../privacy-policy.html">中文</a>
+        <span class="sep">|</span>
+        <a href="privacy-policy.html" class="active">English</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="doc">
+    <div class="container doc-inner">
+      <a class="back-link" href="./">← Back to home</a>
+
+      <h1>ClawTab Privacy Policy</h1>
+      <p class="effective-date">Effective date: 2026-06-21</p>
+
+      <p>
+        ClawTab is a Chrome extension that helps users ask questions about the content of their current browser tabs.
+      </p>
+
+      <h2>Data processed by the extension</h2>
+      <p>ClawTab may process the following data to provide its core features:</p>
+      <ul>
+        <li>Web page content: page title, URL, and extracted article or page text.</li>
+        <li>User input: questions typed into the ClawTab chat box.</li>
+        <li>Chat history: previous user and assistant messages.</li>
+        <li>Extension settings: model Base URL, API Key, and model name.</li>
+      </ul>
+
+      <h2>How data is used</h2>
+      <p>
+        ClawTab uses page content and user questions to generate answers through the OpenAI-compatible
+        chat completion endpoint configured by the user.
+      </p>
+      <p>
+        The extension stores chat history and model configuration in Chrome local storage so the side
+        panel can restore previous state.
+      </p>
+
+      <h2>Data sharing</h2>
+      <p>ClawTab does not operate its own backend service.</p>
+      <p>
+        When the user sends a question, the extension sends the relevant page content, user question,
+        and conversation context to the model endpoint configured by the user. The privacy and retention
+        practices of that endpoint are controlled by the endpoint provider chosen by the user.
+      </p>
+
+      <h2>API keys</h2>
+      <p>
+        The API Key entered by the user is stored locally in Chrome storage and is used only to call
+        the configured model endpoint.
+      </p>
+
+      <h2>Remote code</h2>
+      <p>
+        ClawTab does not intentionally load remote executable code. The extension package includes its
+        own JavaScript bundle.
+      </p>
+
+      <h2>User control</h2>
+      <p>
+        Users can clear chat history from the extension UI. Users can also remove extension data through
+        Chrome extension storage controls or by uninstalling the extension.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        For privacy questions, please open an issue on
+        <a href="https://github.com/whyun-pages/clawtab/issues" target="_blank" rel="noopener">GitHub</a>.
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© 2026 ClawTab</div>
+      <div class="footer-links">
+        <a href="./">Home</a>
+        <a href="https://github.com/whyun-pages/clawtab" target="_blank" rel="noopener">GitHub</a>
+        <a href="../privacy-policy.html">中文</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
