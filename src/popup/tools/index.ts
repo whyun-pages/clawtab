@@ -2,6 +2,7 @@ import { ToolName } from '../../ai/tools';
 import type { ToolStreamDelta } from '../../shared/types';
 import { AbstractToolRenderer } from './abstract-tool.renderer';
 import { GenericToolRenderer } from './generic-tool.renderer';
+import { SearchSiteRenderer } from './search-site.renderer';
 import { TabOpenInBackgroundRenderer } from './tab-open-in-background.renderer';
 import { TabSnapshotGetRenderer } from './tab-snapshot-get.renderer';
 import { TabSnapshotListBasicRenderer } from './tab-snapshot-list-basic.renderer';
@@ -14,6 +15,7 @@ const toolRenderers: Record<ToolName, ToolRendererConstructor> = {
   tabSnapshotGet: TabSnapshotGetRenderer,
   tabSnapshotListBasicTool: TabSnapshotListBasicRenderer,
   tabOpenInBackground: TabOpenInBackgroundRenderer,
+  searchSite: SearchSiteRenderer,
 };
 
 export function getToolRenderer(delta: ToolStreamDelta): AbstractToolRenderer {

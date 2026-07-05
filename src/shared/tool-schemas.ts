@@ -40,3 +40,26 @@ export const tabOpenInBackgroundOutputSchema = z.object({
     })
     .nullable(),
 });
+
+export const searchSiteIds = [
+  'google',
+  'bing',
+  'baidu',
+  'taobao',
+  'jd',
+] as const;
+
+export const searchSiteInputSchema = z.object({
+  site: z.enum(searchSiteIds),
+  query: z.string().min(1),
+});
+
+export const searchSiteOutputSchema = z.object({
+  data: z
+    .object({
+      site: z.enum(searchSiteIds),
+      query: z.string(),
+      url: z.string().url(),
+    })
+    .nullable(),
+});
