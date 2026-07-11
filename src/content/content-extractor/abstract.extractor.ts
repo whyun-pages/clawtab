@@ -69,7 +69,7 @@ export abstract class AbstractContentExtractor {
       await this.waitForStableDOM();
     } catch (err) {
       // 超时了也继续往下走，毕竟有可能是个动态页面，等 DOM 稳定了再抽取
-      defaultLogger.warn(
+      defaultLogger.info(
         this.url,
         'Content extractor ready check failed:',
         err,

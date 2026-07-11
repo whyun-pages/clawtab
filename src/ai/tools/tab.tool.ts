@@ -7,11 +7,12 @@ import {
   tabOpenInBackgroundOutputSchema,
 } from '../../shared/tool-schemas';
 
-const SNAPSHOT_WAIT_TIMEOUT_MS = 5000;
+const SNAPSHOT_WAIT_TIMEOUT_MS = 30_000;
 
 export const tabOpenInBackgroundTool = tool({
-  description:
-    '在浏览器后台（不切换焦点）打开指定 URL 的标签页，并等待该页面的内容快照采集完成（最长 5 秒）。如果该 URL 已在某个标签页打开则复用，不重复新建。返回 snapshotReady 表示是否可立即用 tabSnapshotGet 读取内容。',
+  description: `在浏览器后台（不切换焦点）打开指定 URL 的标签页，并等待该页面的内容快照采集完成。
+如果该 URL 已在某个标签页打开则复用，不重复新建。
+返回 snapshotReady 表示是否可立即用 tabSnapshotGet 读取内容。`,
   inputSchema: tabOpenInBackgroundInputSchema,
   outputSchema: tabOpenInBackgroundOutputSchema,
   execute: async ({ url }) => {
