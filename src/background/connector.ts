@@ -5,7 +5,7 @@ import type {
   LlmConfig,
   PageSnapshot,
 } from '../shared/types';
-import { type LlmInputMessage, requestLlm, streamLlm } from './llm-gateway';
+import { type LlmInputMessage, streamLlm } from './llm-gateway';
 import { decideSkill } from './skills';
 import type { LlmStreamDelta } from './think-tag-parser';
 
@@ -72,46 +72,6 @@ function trimHistory(history: ChatMessage[]): LlmInputMessage[] {
       role: entry.role,
       content: entry.content,
     }));
-}
-
-export async function runConnector(
-  message: string,
-  tabs: PageSnapshot[],
-  config: LlmConfig,
-  _history: ChatMessage[],
-): Promise<ConnectorResult> {
-  const decision = decideSkill(message);
-  const relatedTabs = selectRelatedTabs(message, tabs);
-
-  if (!config.baseUrl.trim() || !config.apiKey.trim()) {
-    return {
-      reply: buildMissingConfigReply(relatedTabs),
-      decision,
-      relatedTabs,
-      mode: 'config-required',
-    };
-  }
-
-  const gatewayMessages: LlmInputMessage[] = [
-    {
-      role: 'system',
-      content: buildSystemPrompt(),
-    },
-    ...trimHistory(_history),
-    {
-      role: 'user',
-      content: message,
-    },
-  ];
-
-  const reply = await requestLlm(config, gatewayMessages);
-
-  return {
-    reply,
-    decision,
-    relatedTabs,
-    mode: 'gateway',
-  };
 }
 
 export async function runConnectorStream(

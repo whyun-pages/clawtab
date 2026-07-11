@@ -7,7 +7,6 @@ import { contentSnapshotHandler } from './content-snapshot.handler';
 import { getChatStateHandler } from './get-chat-state.handler';
 import { getConfigHandler } from './get-config.handler';
 import { saveConfigHandler } from './save-config.handler';
-import { sendChatHandler } from './send-chat.handler';
 import { sessionCreateHandler } from './session-create.handler';
 import { sessionDeleteHandler } from './session-delete.handler';
 import { sessionListHandler } from './session-list.handler';
@@ -26,7 +25,6 @@ const handlerRegistry = new Map<
   AnyBackgroundMessageHandler
 >([
   [contentSnapshotHandler.type, contentSnapshotHandler],
-  [sendChatHandler.type, sendChatHandler],
   [getChatStateHandler.type, getChatStateHandler],
   [getConfigHandler.type, getConfigHandler],
   [saveConfigHandler.type, saveConfigHandler],

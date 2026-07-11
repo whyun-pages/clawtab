@@ -26,7 +26,6 @@ clawtab/
 │  │  │  ├─ get-chat-state.handler.ts
 │  │  │  ├─ get-config.handler.ts
 │  │  │  ├─ save-config.handler.ts
-│  │  │  ├─ send-chat.handler.ts
 │  │  │  ├─ session-create.handler.ts
 │  │  │  ├─ session-delete.handler.ts
 │  │  │  ├─ session-list.handler.ts
@@ -203,10 +202,6 @@ AI SDK 工具的 zod 输入/输出 schema，被 background 工具实现与 popup
 
 接收 `content/snapshot`，用 `sender.tab?.id` 补齐 `tabId` 后调用 `upsertSnapshot`。
 
-### `src/background/handlers/send-chat.handler.ts`
-
-处理一次性 `chat/send` 请求：读取会话历史、调用 `runConnector`、把 user/assistant 消息追加进 IndexedDB。
-
 ### `src/background/handlers/chat-stream-start.handler.ts`
 
 处理 `chat/stream:start` Port 消息：
@@ -280,7 +275,6 @@ IndexedDB 初始化（基于 [`idb`](https://www.npmjs.com/package/idb)），声
 AI SDK 网关封装：
 
 - 通过 `@ai-sdk/openai-compatible` 创建 provider
-- `requestLlm()` 走 `generateText`
 - `streamLlm()` 走 `streamText` 并解析 `text-delta` / `reasoning-delta` / 各种 `tool-*` 事件
 - 通过 `prepareStep` 在第 0 / 1 步强制选择 `tabSnapshotListBasicTool` / `tabSnapshotGet`
 - 整体步数受 `stopWhen: stepCountIs(5)` 约束
@@ -298,7 +292,7 @@ AI SDK 网关封装：
 2. `selectRelatedTabs()` 在所有快照中按用户问题打分并取前 3
 3. 通过 `buildSystemPrompt()` 生成 system prompt
 4. 拼上历史（`trimHistory` 截断到 `MAX_HISTORY_LENGTH`）和当前 user 消息
-5. 调用 `requestLlm` / `streamLlm`
+5. 调用 `streamLlm`
 
 未配置 Base URL 或 API Key 时直接返回 `mode: 'config-required'` 的引导文案。
 

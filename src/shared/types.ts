@@ -65,17 +65,6 @@ export interface ConnectorResult {
   mode: 'gateway' | 'config-required';
 }
 
-export interface SendChatRequest {
-  type: 'chat/send';
-  message: string;
-}
-
-export interface SendChatResponse {
-  ok: true;
-  result: ConnectorResult;
-  history: ChatMessage[];
-}
-
 export const CHAT_STREAM_PORT = 'chat/stream';
 
 export type LlmStreamDeltaType = 'answer' | 'reasoning' | 'tool';
@@ -274,7 +263,6 @@ export interface TabActivateResponse {
 }
 
 export type RuntimeMessage =
-  | SendChatRequest
   | ContentSnapshotMessage
   | GetChatStateRequest
   | SaveConfigRequest
