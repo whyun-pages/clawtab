@@ -1,7 +1,7 @@
 import type { ExtractResult } from '../interfaces/content-extractor.interface';
 import { AbstractContentExtractor } from './abstract.extractor';
 
-export class JDContentExtractor extends AbstractContentExtractor {
+export class JDProductExtractor extends AbstractContentExtractor {
   protected doExtract(): Promise<ExtractResult> {
     // Readability.parse() 会就地改写 DOM；必须传 document 的副本，否则会破坏宿主页
     const documentClone = document.cloneNode(true) as Document;

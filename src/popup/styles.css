@@ -583,6 +583,83 @@ body {
   border: 1px solid #e5e7eb;
 }
 
+.citation-sup {
+  display: inline-block;
+  margin-left: 2px;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 14px;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  vertical-align: super;
+  text-decoration: none;
+}
+
+.citation-sup:hover {
+  background: #c7d2fe;
+}
+
+.message__citations {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 12px;
+}
+
+.message__citations__title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.message__citations__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.message__citations__item-wrap + .message__citations__item-wrap {
+  margin-top: 2px;
+}
+
+.message__citation-item {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  gap: 8px;
+  padding: 4px 0;
+  color: #1f2937;
+  text-decoration: none;
+  cursor: pointer;
+  align-items: baseline;
+}
+
+.message__citation-item:hover {
+  color: #1d4ed8;
+}
+
+.message__citation-index {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.message__citation-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message__citation-host {
+  color: #6b7280;
+  font-size: 11px;
+}
+
 .composer {
   padding: 16px;
   display: grid;

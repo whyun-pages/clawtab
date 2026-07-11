@@ -47,6 +47,10 @@ export const searchSiteIds = [
   'baidu',
   'taobao',
   'jd',
+  'goofish',
+  'amazon',
+  'ebay',
+  'bestbuy',
 ] as const;
 
 export const searchSiteInputSchema = z.object({

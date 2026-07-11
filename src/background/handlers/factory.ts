@@ -13,6 +13,7 @@ import { sessionDeleteHandler } from './session-delete.handler';
 import { sessionListHandler } from './session-list.handler';
 import { sessionRenameHandler } from './session-rename.handler';
 import { sessionSwitchHandler } from './session-switch.handler';
+import { tabActivateHandler } from './tab-activate.handler';
 import type {
   AnyBackgroundMessageHandler,
   BackgroundMessageType,
@@ -35,6 +36,7 @@ const handlerRegistry = new Map<
   [sessionSwitchHandler.type, sessionSwitchHandler],
   [sessionDeleteHandler.type, sessionDeleteHandler],
   [sessionRenameHandler.type, sessionRenameHandler],
+  [tabActivateHandler.type, tabActivateHandler],
 ]);
 
 export function getBackgroundMessageHandler(

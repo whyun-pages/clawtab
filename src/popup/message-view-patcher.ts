@@ -1,4 +1,5 @@
 import type { ChatMessage, ToolStreamDelta } from '../shared/types';
+import { updateCitationsSection } from './citation-view';
 import { renderMarkdown } from './markdown-renderer';
 import { renderMessageCopyButton } from './message-copy';
 import {
@@ -16,6 +17,7 @@ export function patchMessageSections(
   updateToolCallsSection(article, message);
   updateReasoningSection(article, message);
   updateContentSection(article, message);
+  updateCitationsSection(article, message);
   updateCopyButton(article, message);
 }
 

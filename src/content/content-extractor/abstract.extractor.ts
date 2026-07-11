@@ -1,6 +1,14 @@
 import { defaultLogger } from '../../lib/logger';
 import { ExtractPayload, ExtractResult } from '../interfaces';
-
+/**
+ * 淘宝搜索结果提取器 - 在浏览器控制台中运行
+ * 提取搜索结果列表，转为 Markdown 表格/列表
+ *
+ * 使用方法：在淘宝搜索结果页打开开发者工具(F12)，粘贴到 Console 中执行
+ *
+ * 淘宝搜索页使用 CSS Module 哈希类名（如 title--ASSt27UY），
+ * 本脚本使用前缀匹配策略。
+ */
 export abstract class AbstractContentExtractor {
   protected body: HTMLElement;
   protected url: string;

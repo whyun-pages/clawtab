@@ -8,8 +8,13 @@ import type {
 } from '../shared/types';
 import { getHistory, setConfig, setHistory } from './chat-state';
 import { bindChatShortcut } from './chat-shortcut';
+import { bindCitationActions } from './citation-view';
 import { startChatStream, stopChatStream } from './chat-stream-controller';
-import { buildConfigStatus, hydrateConfig, setConfigStatus } from './config-controller';
+import {
+  buildConfigStatus,
+  hydrateConfig,
+  setConfigStatus,
+} from './config-controller';
 import { formElement, inputElement, submitButton } from './dom';
 import { bindMessageCopyActions } from './message-copy';
 import { renderMessages, renderRealtimeMessage } from './message-view';
@@ -18,6 +23,7 @@ import { mountSettingsPanel } from './settings-panel';
 
 void bootstrap();
 bindMessageCopyActions();
+bindCitationActions();
 bindChatForm();
 bindShortcut();
 mountSettingsPanel({

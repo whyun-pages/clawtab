@@ -251,6 +251,16 @@ export interface ContentSnapshotMessage {
   snapshot: Omit<PageSnapshot, 'tabId'>;
 }
 
+export interface TabActivateRequest {
+  type: 'tab/activate';
+  url: string;
+  tabId?: TabId;
+}
+
+export interface TabActivateResponse {
+  ok: true;
+}
+
 export type RuntimeMessage =
   | SendChatRequest
   | ContentSnapshotMessage
@@ -261,4 +271,5 @@ export type RuntimeMessage =
   | SessionCreateRequest
   | SessionSwitchRequest
   | SessionDeleteRequest
-  | SessionRenameRequest;
+  | SessionRenameRequest
+  | TabActivateRequest;

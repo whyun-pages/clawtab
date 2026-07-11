@@ -29,7 +29,9 @@ function setup() {
 
   bindChatShortcut({ input, form, submitter });
 
-  const dispatch = (event: Omit<FakeKeyEvent, 'preventDefault'>): {
+  const dispatch = (
+    event: Omit<FakeKeyEvent, 'preventDefault'>,
+  ): {
     preventDefault: ReturnType<typeof vi.fn>;
   } => {
     const preventDefault = vi.fn();

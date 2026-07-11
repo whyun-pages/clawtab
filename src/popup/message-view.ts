@@ -1,5 +1,6 @@
 import type { ChatMessage } from '../shared/types';
 import { messagesElement } from './dom';
+import { updateCitationsSection } from './citation-view';
 import { renderMarkdown } from './markdown-renderer';
 import { clearMessageCopyTexts, renderMessageCopyButton } from './message-copy';
 import { patchMessageSections } from './message-view-patcher';
@@ -15,6 +16,8 @@ export function renderMessages(history: ChatMessage[]): void {
   messagesElement.innerHTML = history
     .map((message) => renderMessage(message))
     .join('');
+
+  decorateHistoryCitations(history);
 
   messagesElement.scrollTop = messagesElement.scrollHeight;
 }
@@ -32,6 +35,14 @@ export function renderRealtimeMessage(message: ChatMessage): void {
     patchMessageSections(existing, message);
   } else {
     messagesElement.insertAdjacentHTML('beforeend', renderMessage(message));
+    if (message.role === 'assistant') {
+      const inserted = messagesElement.querySelector<HTMLElement>(
+        `[data-message-id="${escapeCssAttributeValue(message.cid)}"]`,
+      );
+      if (inserted) {
+        updateCitationsSection(inserted, message);
+      }
+    }
   }
 
   messagesElement.scrollTop = messagesElement.scrollHeight;
@@ -53,11 +64,31 @@ function renderMessage(message: ChatMessage): string {
       ? renderReasoningSection(message.reasoning)
       : '';
   const contentHtml = renderContentSection(message);
+  // Citations section is inserted after the article is attached, via
+  // updateCitationsSection, so we can inspect real anchors + decorate sups.
   const copyHtml = renderMessageCopyButton(message);
 
   return `<article class="${className}" data-message-id="${escapeHtml(
     message.cid,
   )}">${toolCallsHtml}${reasoningHtml}${contentHtml}${copyHtml}</article>`;
+}
+
+function decorateHistoryCitations(history: ChatMessage[]): void {
+  const root = messagesElement;
+  if (!root) {
+    return;
+  }
+  history.forEach((message) => {
+    if (message.role !== 'assistant') {
+      return;
+    }
+    const article = root.querySelector<HTMLElement>(
+      `[data-message-id="${escapeCssAttributeValue(message.cid)}"]`,
+    );
+    if (article) {
+      updateCitationsSection(article, message);
+    }
+  });
 }
 
 function escapeCssAttributeValue(value: string): string {

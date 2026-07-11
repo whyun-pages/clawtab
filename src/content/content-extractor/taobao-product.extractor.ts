@@ -1,7 +1,7 @@
 import type { ExtractResult } from '../interfaces/content-extractor.interface';
 import { AbstractContentExtractor } from './abstract.extractor';
 
-export class TaobaoContentExtractor extends AbstractContentExtractor {
+export class TaobaoProductExtractor extends AbstractContentExtractor {
   protected doExtract(): Promise<ExtractResult> {
     const lines = [];
     // ===== 商品标题 =====
