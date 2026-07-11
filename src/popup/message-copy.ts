@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../shared/types';
+import { t } from '../shared/i18n';
 import { messagesElement } from './dom';
 import { escapeHtml } from './tools/render-utils';
 
@@ -27,7 +28,10 @@ export function renderMessageCopyButton(message: ChatMessage): string {
 
   copyTextByMessageId.set(message.cid, message.content);
 
-  return `<div class="message__actions"><button class="message__copy" type="button" aria-label="复制" title="复制" data-copy-message-id="${escapeHtml(
+  const copyLabel = t('message_copy');
+  return `<div class="message__actions"><button class="message__copy" type="button" aria-label="${escapeHtml(
+    copyLabel,
+  )}" title="${escapeHtml(copyLabel)}" data-copy-message-id="${escapeHtml(
     message.cid,
   )}">${copyIconHtml}</button></div>`;
 }
@@ -72,27 +76,28 @@ async function copyMessageText(button: HTMLButtonElement): Promise<void> {
 
   try {
     await navigator.clipboard.writeText(text);
-    showCopyFeedback(button, '已复制');
+    showCopyFeedback(button, true);
   } catch {
-    showCopyFeedback(button, '复制失败');
+    showCopyFeedback(button, false);
   }
 }
 
-function showCopyFeedback(button: HTMLButtonElement, label: string): void {
+function showCopyFeedback(button: HTMLButtonElement, isSuccess: boolean): void {
   const existingTimer = copyFeedbackTimers.get(button);
   if (existingTimer !== undefined) {
     clearTimeout(existingTimer);
   }
 
-  const isSuccess = label === '已复制';
+  const label = t(isSuccess ? 'message_copied' : 'message_copy_failed');
   button.innerHTML = isSuccess ? copiedIconHtml : copyIconHtml;
   button.setAttribute('aria-label', label);
   button.setAttribute('title', label);
   button.dataset.copyState = isSuccess ? 'success' : 'error';
   const timer = setTimeout(() => {
+    const idleLabel = t('message_copy');
     button.innerHTML = copyIconHtml;
-    button.setAttribute('aria-label', '复制');
-    button.setAttribute('title', '复制');
+    button.setAttribute('aria-label', idleLabel);
+    button.setAttribute('title', idleLabel);
     delete button.dataset.copyState;
     copyFeedbackTimers.delete(button);
   }, 1200);

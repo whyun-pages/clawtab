@@ -63,6 +63,28 @@ vi.mock('../src/popup/dom', () => ({
   messagesElement: domMock.messagesElement,
 }));
 
+// Simulate a real chrome extension runtime: chrome.i18n.getMessage returns the
+// localized string for the current UI language (here: zh_CN messages we ship).
+// Without this stub, the i18n wrapper would fall back to raw key names.
+const I18N_STUB: Record<string, string> = {
+  message_copy: '复制',
+  message_copied: '已复制',
+  message_copy_failed: '复制失败',
+  message_reasoning: '思考过程',
+};
+const chromeStub = {
+  i18n: {
+    getMessage: (key: string) => I18N_STUB[key] ?? '',
+    getUILanguage: () => 'zh-CN',
+  },
+  storage: {
+    local: {
+      get: async () => ({}),
+      set: async () => undefined,
+    },
+  },
+};
+
 describe('popup message view', () => {
   beforeEach(() => {
     domMock.messagesElement.innerHTML = '';
@@ -70,6 +92,7 @@ describe('popup message view', () => {
     domMock.messagesElement.scrollHeight = 0;
     domMock.listeners.clear();
     vi.useRealTimers();
+    vi.stubGlobal('chrome', chromeStub);
   });
 
   it('renders completed tool call inputs inside assistant messages', async () => {

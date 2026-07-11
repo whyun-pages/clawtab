@@ -9,8 +9,14 @@ import {
 import { appendMessages, clearMessages } from './message-store';
 
 const META_CURRENT_SID = 'currentSid';
-const DEFAULT_SESSION_TITLE = '新会话';
-const WELCOME_MESSAGE_CONTENT =
+// The literal fallbacks are the source-language (zh_CN) strings. They are only
+// used when the popup renderer somehow cannot resolve the i18n key — the
+// canonical value lives in `_locales/*/messages.json` and is chosen at render
+// time via `titleKey` / `contentKey`.
+const DEFAULT_SESSION_TITLE_KEY = 'session_default_title';
+const DEFAULT_SESSION_TITLE_FALLBACK = '新会话';
+const WELCOME_MESSAGE_KEY = 'session_welcome_message';
+const WELCOME_MESSAGE_FALLBACK =
   '你好，我是 ClawTab。先在设置里填入大模型 Base URL 和 API Key，我就会通过真实的大模型接口来回答你。';
 
 export async function listSessions(): Promise<Session[]> {
@@ -24,12 +30,21 @@ export async function listSessions(): Promise<Session[]> {
 
 export async function createSession(title?: string): Promise<Session> {
   const now = Date.now();
-  const session: Session = {
-    sid: crypto.randomUUID(),
-    title: title?.trim() || DEFAULT_SESSION_TITLE,
-    createdAt: now,
-    updatedAt: now,
-  };
+  const trimmedTitle = title?.trim();
+  const session: Session = trimmedTitle
+    ? {
+        sid: crypto.randomUUID(),
+        title: trimmedTitle,
+        createdAt: now,
+        updatedAt: now,
+      }
+    : {
+        sid: crypto.randomUUID(),
+        title: DEFAULT_SESSION_TITLE_FALLBACK,
+        titleKey: DEFAULT_SESSION_TITLE_KEY,
+        createdAt: now,
+        updatedAt: now,
+      };
 
   const db = await getDb();
   await db.put(STORE_SESSIONS, session);
@@ -37,7 +52,8 @@ export async function createSession(title?: string): Promise<Session> {
   await appendMessages(session.sid, [
     {
       role: 'assistant',
-      content: WELCOME_MESSAGE_CONTENT,
+      content: WELCOME_MESSAGE_FALLBACK,
+      contentKey: WELCOME_MESSAGE_KEY,
     },
   ]);
 
@@ -54,9 +70,13 @@ export async function renameSession(
   if (!session) {
     throw new Error(`Session not found: ${sid}`);
   }
+  const trimmed = title.trim();
   const updated: Session = {
     ...session,
-    title: title.trim() || session.title,
+    title: trimmed || session.title,
+    // User rename intent wins over auto-localization: drop the key so the
+    // literal `title` is used going forward.
+    titleKey: undefined,
     updatedAt: Date.now(),
   };
   await tx.store.put(updated);
@@ -93,7 +113,8 @@ export async function resetSession(sid: string): Promise<void> {
   await appendMessages(sid, [
     {
       role: 'assistant',
-      content: WELCOME_MESSAGE_CONTENT,
+      content: WELCOME_MESSAGE_FALLBACK,
+      contentKey: WELCOME_MESSAGE_KEY,
     },
   ]);
 }

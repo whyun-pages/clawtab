@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../shared/types';
+import { t } from '../shared/i18n';
 import { messagesElement } from './dom';
 import { updateCitationsSection } from './citation-view';
 import { renderMarkdown } from './markdown-renderer';
@@ -113,13 +114,27 @@ export function renderToolCallItems(
 }
 
 export function renderReasoningSection(reasoning: string): string {
-  return `<details class="message__reasoning"><summary>思考过程</summary><div>${escapeHtml(
-    reasoning,
-  )}</div></details>`;
+  return `<details class="message__reasoning"><summary>${escapeHtml(
+    t('message_reasoning'),
+  )}</summary><div>${escapeHtml(reasoning)}</div></details>`;
 }
 
 export function renderContentSection(message: ChatMessage): string {
+  const content = resolveMessageContent(message);
   return message.role === 'assistant'
-    ? `<div class="message__markdown">${renderMarkdown(message.content)}</div>`
-    : `<div class="message__plain">${escapeHtml(message.content)}</div>`;
+    ? `<div class="message__markdown">${renderMarkdown(content)}</div>`
+    : `<div class="message__plain">${escapeHtml(content)}</div>`;
+}
+
+/**
+ * Prefer a translation key when present — assistant welcome messages are
+ * seeded with `contentKey` so they re-localize when the user switches locales.
+ * Everything else (user input, streamed LLM output) resolves to literal
+ * `content` as stored.
+ */
+function resolveMessageContent(message: ChatMessage): string {
+  if (message.contentKey) {
+    return t(message.contentKey);
+  }
+  return message.content;
 }

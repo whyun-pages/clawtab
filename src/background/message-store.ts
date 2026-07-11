@@ -50,6 +50,9 @@ export async function appendMessages(
       sid,
       role: input.role,
       content: input.content,
+      ...(input.contentKey !== undefined
+        ? { contentKey: input.contentKey }
+        : {}),
       ...(input.reasoning !== undefined ? { reasoning: input.reasoning } : {}),
       ...(input.toolCalls !== undefined ? { toolCalls: input.toolCalls } : {}),
       createdAt: now,

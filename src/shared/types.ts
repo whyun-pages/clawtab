@@ -20,6 +20,12 @@ export interface ChatMessage {
   sid: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  /**
+   * Optional i18n key. When set, renderers prefer t(contentKey) over `content`
+   * so seed messages (e.g. the assistant welcome greeting) re-localize as the
+   * user switches languages. Persisted alongside `content` for legacy fallback.
+   */
+  contentKey?: string;
   reasoning?: string;
   toolCalls?: ToolStreamDelta[];
   createdAt: number;
@@ -29,6 +35,12 @@ export interface ChatMessage {
 export interface Session {
   sid: string;
   title: string;
+  /**
+   * Optional i18n key. Set for sessions the extension created with a default
+   * title so they re-localize with the current UI language. Cleared once the
+   * user renames the session, so user intent wins.
+   */
+  titleKey?: string;
   createdAt: number;
   updatedAt: number;
 }

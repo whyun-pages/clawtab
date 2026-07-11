@@ -34,3 +34,9 @@ export const settingsToggleButton =
   document.querySelector<HTMLButtonElement>('#settings-toggle');
 export const settingsPanelElement =
   document.querySelector<HTMLElement>('#settings-panel');
+export const settingsNavElement =
+  document.querySelector<HTMLElement>('#settings-nav');
+export const settingsSectionElements =
+  document.querySelectorAll<HTMLElement>('.settings__section');
+export const settingsLanguageSelect =
+  document.querySelector<HTMLSelectElement>('#settings-language');

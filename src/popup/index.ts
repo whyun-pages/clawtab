@@ -6,7 +6,9 @@ import type {
   GetChatStateRequest,
   GetChatStateResponse,
 } from '../shared/types';
-import { getHistory, setConfig, setHistory } from './chat-state';
+import { initI18n, LOCALE_CHANGED_EVENT } from '../shared/i18n';
+import { applyI18nToDom } from '../shared/i18n-dom';
+import { getConfig, getHistory, setConfig, setHistory } from './chat-state';
 import { bindChatShortcut } from './chat-shortcut';
 import { bindCitationActions } from './citation-view';
 import { startChatStream, stopChatStream } from './chat-stream-controller';
@@ -18,19 +20,10 @@ import {
 import { formElement, inputElement, submitButton } from './dom';
 import { bindMessageCopyActions } from './message-copy';
 import { renderMessages, renderRealtimeMessage } from './message-view';
-import { mountSessionPanel } from './session-panel';
+import { mountSessionPanel, refreshSessionPanel } from './session-panel';
 import { mountSettingsPanel } from './settings-panel';
 
 void bootstrap();
-bindMessageCopyActions();
-bindCitationActions();
-bindChatForm();
-bindShortcut();
-mountSettingsPanel({
-  onConfigSaved: (config) => {
-    setConfig(config);
-  },
-});
 
 function bindChatForm(): void {
   formElement?.addEventListener('submit', (event) => {
@@ -63,6 +56,21 @@ function bindShortcut(): void {
 }
 
 async function bootstrap(): Promise<void> {
+  // i18n must resolve before any component renders, so that the initial paint
+  // uses the correct locale and DOM attributes get translated in one pass.
+  await initI18n();
+  applyI18nToDom(document);
+
+  bindMessageCopyActions();
+  bindCitationActions();
+  bindChatForm();
+  bindShortcut();
+  mountSettingsPanel({
+    onConfigSaved: (config) => {
+      setConfig(config);
+    },
+  });
+
   const response = await fetchChatState();
 
   setHistory(response.history);
@@ -75,6 +83,19 @@ async function bootstrap(): Promise<void> {
     initialSessions: response.sessions,
     initialCurrentSid: response.currentSid,
     onSessionChanged: refreshChatState,
+  });
+
+  window.addEventListener(LOCALE_CHANGED_EVENT, () => {
+    applyI18nToDom(document);
+    // Chat state (config status, session labels, message list) is dynamically
+    // rendered — recompute against the latest known config so translated
+    // strings pick up the new locale.
+    const config = getConfig();
+    if (config) {
+      setConfigStatus(buildConfigStatus(config));
+    }
+    refreshSessionPanel();
+    render();
   });
 }
 

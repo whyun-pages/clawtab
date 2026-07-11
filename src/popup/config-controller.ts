@@ -3,6 +3,7 @@ import type {
   SaveConfigRequest,
   SaveConfigResponse,
 } from '../shared/types';
+import { t } from '../shared/i18n';
 import {
   apiKeyInput,
   baseUrlInput,
@@ -63,8 +64,8 @@ export function setConfigStatus(value: string): void {
 
 export function buildConfigStatus(config: LlmConfig): string {
   if (!config.apiKey) {
-    return '未配置 API Key，发送消息时不会调用真实大模型接口。';
+    return t('config_status_unconfigured');
   }
 
-  return `已配置 ${config.baseUrl}，模型 ${config.model}。`;
+  return t('config_status_configured', [config.baseUrl, config.model]);
 }
