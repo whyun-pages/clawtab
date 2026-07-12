@@ -110,5 +110,8 @@
   },
   "message_reasoning": {
     "message": "Reasoning"
+  },
+  "chat_disclaimer": {
+    "message": "ClawTab can make mistakes. Check important info."
   }
 }

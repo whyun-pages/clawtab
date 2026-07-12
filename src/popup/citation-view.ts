@@ -6,18 +6,44 @@ import { escapeHtml } from './tools/render-utils';
 const CITATION_DATA_URL = 'data-cite-url';
 const CITATION_DATA_TAB_ID = 'data-cite-tab-id';
 
+/** Number of citation items shown before the rest collapse into a <details>. */
+const CITATION_VISIBLE_LIMIT = 3;
+
 /**
  * Renders the "引用来源" footer list for an assistant message. Returns an empty
  * string when there are no citations, so the caller can inline the result.
+ *
+ * When there are more than CITATION_VISIBLE_LIMIT entries, the overflow is
+ * wrapped in a native <details> so it stays collapsed by default (no JS,
+ * mirrors renderReasoningSection).
  */
 export function renderCitationsSection(entries: CitationEntry[]): string {
   if (entries.length === 0) {
     return '';
   }
 
-  const items = entries.map((entry) => renderCitationItem(entry)).join('');
+  const head = entries
+    .slice(0, CITATION_VISIBLE_LIMIT)
+    .map((entry) => renderCitationItem(entry))
+    .join('');
 
-  return `<section class="message__citations"><p class="message__citations__title">引用来源</p><ol class="message__citations__list">${items}</ol></section>`;
+  const rest = entries.slice(CITATION_VISIBLE_LIMIT);
+  const more =
+    rest.length === 0
+      ? ''
+      : `<details class="message__citations__more">` +
+        `<summary class="message__citations__more-summary">展开全部 (${entries.length})</summary>` +
+        `<ol class="message__citations__list">${rest
+          .map((entry) => renderCitationItem(entry))
+          .join('')}</ol>` +
+        `</details>`;
+
+  return (
+    `<section class="message__citations">` +
+    `<p class="message__citations__title">引用来源</p>` +
+    `<ol class="message__citations__list">${head}</ol>` +
+    `${more}</section>`
+  );
 }
 
 function renderCitationItem(entry: CitationEntry): string {

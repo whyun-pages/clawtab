@@ -1,5 +1,6 @@
 import { ExtractResult } from '../interfaces';
-import { AbstractContentExtractor } from './abstract.extractor';
+import { qAllPrefix, qPrefix } from '../utils/dom';
+import { AbstractContentExtractor, ScrollConfig } from './abstract.extractor';
 /**
  * 闲鱼搜索结果提取器
  *
@@ -19,23 +20,13 @@ interface GoofishSearchItem {
 }
 
 export class GoofishSearchContentExtractor extends AbstractContentExtractor {
+  // 闲鱼搜索页为无限滚动瀑布流，抽取前先滚动加载更多商品
+  protected getScrollConfig(): ScrollConfig {
+    return { maxScrolls: 20, delay: 400 };
+  }
+
   protected doExtract(): Promise<ExtractResult> {
     const lines: string[] = [];
-
-    // ===== 工具函数 =====
-    function qPrefix(
-      prefix: string,
-      root: ParentNode = document,
-    ): Element | null {
-      return root.querySelector(`[class*="${prefix}"]`);
-    }
-
-    function qAllPrefix(
-      prefix: string,
-      root: ParentNode = document,
-    ): NodeListOf<Element> {
-      return root.querySelectorAll(`[class*="${prefix}"]`);
-    }
 
     // ===== 搜索关键词 =====
     const searchInput =

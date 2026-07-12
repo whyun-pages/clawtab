@@ -67,7 +67,7 @@ function buildMissingConfigReply(_relatedTabs: PageSnapshot[]): string {
 function trimHistory(history: ChatMessage[]): LlmInputMessage[] {
   return history
     .slice(-MAX_HISTORY_LENGTH)
-    .filter((entry) => entry.role !== 'system' && !!entry.toolCalls?.length)
+    .filter((entry) => entry.role !== 'system')
     .map((entry) => ({
       role: entry.role,
       content: entry.content,
@@ -108,7 +108,7 @@ export async function runConnectorStream(
     ...trimHistory(_history),
     {
       role: 'user',
-      content: message,
+      content: `当前用户提问：${message}`,
     },
   ];
 

@@ -1,0 +1,188 @@
+import { messagesElement } from './dom';
+
+/**
+ * Images rendered inside assistant markdown and tool-output HTML (e.g. product
+ * search-result thumbnails). Hovering shows an enlarged preview anchored beside
+ * the thumbnail; clicking opens the original in a new tab.
+ */
+const PREVIEW_SELECTOR =
+  '.message__markdown img, .message__tool-output--html img';
+
+const PREVIEW_MARGIN = 8;
+
+let overlay: HTMLDivElement | null = null;
+let overlayImg: HTMLImageElement | null = null;
+
+/**
+ * Lazily creates the floating preview overlay and appends it to `.app` — the
+ * only positioned ancestor (position:relative, fills the popup viewport). It
+ * must not live inside `.messages`, whose overflow would clip it.
+ */
+function ensureOverlay(): HTMLImageElement | null {
+  if (overlayImg) {
+    return overlayImg;
+  }
+
+  const app = document.querySelector<HTMLElement>('.app');
+  if (!app) {
+    return null;
+  }
+
+  const box = document.createElement('div');
+  box.className = 'image-preview';
+  box.hidden = true;
+
+  const img = document.createElement('img');
+  img.alt = '';
+  box.appendChild(img);
+  app.appendChild(box);
+
+  overlay = box;
+  overlayImg = img;
+  return img;
+}
+
+function imageSource(img: HTMLImageElement): string {
+  return img.currentSrc || img.src;
+}
+
+function showPreview(source: HTMLImageElement): void {
+  const previewImg = ensureOverlay();
+  if (!previewImg || !overlay) {
+    return;
+  }
+
+  const src = imageSource(source);
+  if (!src) {
+    return;
+  }
+
+  previewImg.src = src;
+  overlay.hidden = false;
+  positionPreview(source);
+}
+
+/**
+ * Anchors the overlay beside the thumbnail: to the right when there is room,
+ * otherwise to the left, then clamps within the `.app` viewport. Overlay size
+ * depends on the image's natural size + CSS caps, so we measure after it is
+ * visible (and again once the image finishes loading).
+ */
+function positionPreview(source: HTMLImageElement): void {
+  if (!overlay || !overlayImg) {
+    return;
+  }
+
+  const app = overlay.parentElement;
+  if (!app) {
+    return;
+  }
+
+  const box = overlay;
+  const previewImg = overlayImg;
+
+  const place = (): void => {
+    const appRect = app.getBoundingClientRect();
+    const imgRect = source.getBoundingClientRect();
+    const boxRect = box.getBoundingClientRect();
+
+    let left = imgRect.right - appRect.left + PREVIEW_MARGIN;
+    if (left + boxRect.width > appRect.width - PREVIEW_MARGIN) {
+      left = imgRect.left - appRect.left - boxRect.width - PREVIEW_MARGIN;
+    }
+    left = clamp(
+      left,
+      PREVIEW_MARGIN,
+      appRect.width - boxRect.width - PREVIEW_MARGIN,
+    );
+
+    let top = imgRect.top - appRect.top;
+    top = clamp(
+      top,
+      PREVIEW_MARGIN,
+      appRect.height - boxRect.height - PREVIEW_MARGIN,
+    );
+
+    box.style.left = `${left}px`;
+    box.style.top = `${top}px`;
+  };
+
+  place();
+  if (!previewImg.complete) {
+    previewImg.addEventListener('load', place, { once: true });
+  }
+}
+
+function clamp(value: number, min: number, max: number): number {
+  if (max < min) {
+    return min;
+  }
+  return Math.max(min, Math.min(value, max));
+}
+
+function hidePreview(): void {
+  if (overlay) {
+    overlay.hidden = true;
+  }
+}
+
+function resolvePreviewTarget(
+  target: EventTarget | null,
+): HTMLImageElement | null {
+  if (!isElementLike(target)) {
+    return null;
+  }
+  return target.closest<HTMLImageElement>(PREVIEW_SELECTOR);
+}
+
+/**
+ * One-time delegated hover/click handlers on the messages container. Uses
+ * mouseover/mouseout (which bubble) rather than mouseenter/mouseleave so a
+ * single listener covers images added by later re-renders.
+ */
+export function bindImagePreview(): void {
+  if (!messagesElement) {
+    return;
+  }
+
+  messagesElement.addEventListener('mouseover', (event) => {
+    const img = resolvePreviewTarget(event.target);
+    if (img) {
+      showPreview(img);
+    }
+  });
+
+  messagesElement.addEventListener('mouseout', (event) => {
+    const img = resolvePreviewTarget(event.target);
+    if (img) {
+      hidePreview();
+    }
+  });
+
+  messagesElement.addEventListener('click', (event) => {
+    const img = resolvePreviewTarget(event.target);
+    if (!img) {
+      return;
+    }
+    const src = imageSource(img);
+    if (!src) {
+      return;
+    }
+    hidePreview();
+    window.open(src, '_blank', 'noopener,noreferrer');
+  });
+
+  // Anchored position goes stale once the list scrolls, so drop the preview.
+  messagesElement.addEventListener('scroll', hidePreview);
+}
+
+function isElementLike(
+  target: EventTarget | null,
+): target is Element & { closest: Element['closest'] } {
+  return (
+    typeof target === 'object' &&
+    target !== null &&
+    'closest' in target &&
+    typeof (target as { closest?: unknown }).closest === 'function'
+  );
+}

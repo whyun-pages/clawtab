@@ -19,6 +19,7 @@ const allowedTags = [
   'h5',
   'h6',
   'hr',
+  'img',
   'input',
   'li',
   'ol',
@@ -35,15 +36,20 @@ const allowedTags = [
 ];
 
 const allowedAttrs = [
+  'alt',
   'checked',
   'class',
   'disabled',
   'href',
   'rel',
+  'src',
   'target',
   'title',
   'type',
 ];
+
+const allowedUriRegexp =
+  /^(?:https?:|mailto:|data:image\/|#|\/(?!\/)|\.\/|\.\.\/)/i;
 
 const renderer = new marked.Renderer();
 
@@ -83,6 +89,11 @@ function sanitizeHtml(html: string): string {
   const purifier = DOMPurify as unknown as Sanitizer;
 
   if (typeof purifier.sanitize === 'function') {
+    // NOTE: do NOT pass a custom ALLOWED_URI_REGEXP here. DOMPurify applies it
+    // to non-URI attributes too (target/rel), which would strip the link
+    // renderer's target="_blank" rel="noopener noreferrer". DOMPurify's default
+    // URI policy already blocks javascript: while allowing http(s) and
+    // data:image on <img>, which is exactly what we need.
     return purifier.sanitize(html, {
       ALLOWED_ATTR: allowedAttrs,
       ALLOWED_TAGS: allowedTags,
@@ -96,7 +107,11 @@ function fallbackSanitizeHtml(html: string): string {
   const strippedHtml = html
     .replaceAll(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
     .replaceAll(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replaceAll(/\s+(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi, '');
+    .replaceAll(
+      /\s+(href|src)\s*=\s*(["'])([\s\S]*?)\2/gi,
+      (match, attr, quote, value) =>
+        allowedUriRegexp.test(String(value).trim()) ? String(match) : '',
+    );
 
   return strippedHtml.replaceAll(
     /<\/?([a-z][a-z0-9-]*)\b[^>]*>/gi,

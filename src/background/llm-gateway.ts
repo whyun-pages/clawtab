@@ -47,7 +47,7 @@ function buildGatewayOptions(
     })),
     tools: gatewayTools,
     toolChoice: 'auto' as const,
-    stopWhen: stepCountIs(5),
+    stopWhen: stepCountIs(10),
     prepareStep: ({ stepNumber }: { stepNumber: number }) => {
       if (stepNumber === 0) {
         return {

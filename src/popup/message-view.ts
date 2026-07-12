@@ -20,7 +20,7 @@ export function renderMessages(history: ChatMessage[]): void {
 
   decorateHistoryCitations(history);
 
-  messagesElement.scrollTop = messagesElement.scrollHeight;
+  scrollMessagesToBottom();
 }
 
 export function renderRealtimeMessage(message: ChatMessage): void {
@@ -46,7 +46,37 @@ export function renderRealtimeMessage(message: ChatMessage): void {
     }
   }
 
-  messagesElement.scrollTop = messagesElement.scrollHeight;
+  scrollMessagesToBottom();
+}
+
+/**
+ * Scrolls the messages container to the very bottom. Because search-result
+ * tables embed product images that load asynchronously, a single scroll right
+ * after innerHTML lands too early (scrollHeight is still short). We scroll
+ * immediately, again after the next layout frame, and once more when each
+ * pending image finishes loading.
+ */
+function scrollMessagesToBottom(): void {
+  if (!messagesElement) {
+    return;
+  }
+
+  const el = messagesElement;
+  const toBottom = (): void => {
+    el.scrollTop = el.scrollHeight;
+  };
+
+  toBottom();
+
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(toBottom));
+  }
+
+  el.querySelectorAll('img').forEach((img) => {
+    if (!img.complete) {
+      img.addEventListener('load', toBottom, { once: true });
+    }
+  });
 }
 
 function renderMessage(message: ChatMessage): string {

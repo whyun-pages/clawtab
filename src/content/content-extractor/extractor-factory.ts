@@ -11,6 +11,7 @@ import { EbaySearchContentExtractor } from './ebay-search.extractor';
 import { GoofishProductExtractor } from './goofish-product.extractor';
 import { GoofishSearchContentExtractor } from './goofish-search.extractor';
 import { JDProductExtractor } from './jd-product.extractor';
+import { JDSearchContentExtractor } from './jd-search.extractor';
 import { TaobaoProductExtractor } from './taobao-product.extractor';
 import { TaobaoSearchContentExtractor } from './taobao-search.extractor';
 
@@ -28,6 +29,9 @@ export function getInstance(
     case 'item.jd.com':
     case 'item.m.jd.com':
       return new JDProductExtractor(payload);
+    case 'search.jd.com':
+    case 'search.m.jd.com':
+      return new JDSearchContentExtractor(payload);
     case 'detail.tmall.com':
     case 'item.taobao.com':
     case 'chaoshi.detail.tmall.com':

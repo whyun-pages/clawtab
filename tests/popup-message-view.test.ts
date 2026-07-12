@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ChatMessage } from '../src/shared/types';
 
@@ -13,50 +14,11 @@ function makeMessage(
 }
 
 const domMock = vi.hoisted(() => {
-  const listeners = new Map<string, Array<(event: Event) => void>>();
-  const messagesElement = {
-    innerHTML: '',
-    scrollHeight: 0,
-    scrollTop: 0,
-    addEventListener(type: string, listener: EventListener) {
-      listeners.set(type, [...(listeners.get(type) ?? []), listener]);
-    },
-    querySelector(selector: string) {
-      const id = selector.match(/data-message-id="([^"]+)"/)?.[1];
-      if (!id) {
-        return null;
-      }
-
-      const articlePattern = new RegExp(
-        `<article\\b(?=[^>]*data-message-id="${id}")[\\s\\S]*?<\\/article>`,
-      );
-      const match = messagesElement.innerHTML.match(articlePattern);
-      if (!match) {
-        return null;
-      }
-
-      return {
-        get outerHTML() {
-          return match[0];
-        },
-        set outerHTML(html: string) {
-          messagesElement.innerHTML = messagesElement.innerHTML.replace(
-            match[0],
-            html,
-          );
-        },
-      };
-    },
-    insertAdjacentHTML(position: InsertPosition, html: string) {
-      if (position !== 'beforeend') {
-        throw new Error(`Unsupported insert position: ${position}`);
-      }
-
-      messagesElement.innerHTML += html;
-    },
-  };
-
-  return { listeners, messagesElement };
+  // Real DOM node (jsdom): renderRealtimeMessage's patch path calls
+  // querySelector/insertAdjacentHTML/children/... on the matched <article>,
+  // so a string-based stub is not enough — back it with an actual element.
+  const messagesElement = document.createElement('div');
+  return { messagesElement };
 });
 
 vi.mock('../src/popup/dom', () => ({
@@ -88,9 +50,6 @@ const chromeStub = {
 describe('popup message view', () => {
   beforeEach(() => {
     domMock.messagesElement.innerHTML = '';
-    domMock.messagesElement.scrollTop = 0;
-    domMock.messagesElement.scrollHeight = 0;
-    domMock.listeners.clear();
     vi.useRealTimers();
     vi.stubGlobal('chrome', chromeStub);
   });
@@ -266,6 +225,8 @@ describe('popup message view', () => {
           '<script>alert(1)</script>',
           '<img src=x onerror="alert(2)">',
           '[bad](javascript:alert(3))',
+          '',
+          '![示意图](https://example.com/a.png)',
         ].join('\n'),
       }),
     ]);
@@ -283,9 +244,12 @@ describe('popup message view', () => {
       'target="_blank" rel="noopener noreferrer"',
     );
     expect(domMock.messagesElement.innerHTML).not.toContain('<script>');
-    expect(domMock.messagesElement.innerHTML).not.toContain('<img');
     expect(domMock.messagesElement.innerHTML).not.toContain('onerror');
     expect(domMock.messagesElement.innerHTML).not.toContain('javascript:');
+    // 合法的 Markdown 图片应原样渲染
+    expect(domMock.messagesElement.innerHTML).toContain(
+      '<img src="https://example.com/a.png" alt="示意图">',
+    );
   });
 
   it('keeps user markdown-shaped text as escaped plain text', async () => {
@@ -357,59 +321,19 @@ async function clickCopyButton(
     typeof messageOrButton === 'string'
       ? getCopyButton(messageOrButton)
       : messageOrButton;
-  const listeners = domMock.listeners.get('click') ?? [];
-  const event = {
-    target: button,
-  } as unknown as Event;
 
-  for (const listener of listeners) {
-    listener(event);
-  }
+  button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
   await Promise.resolve();
 }
 
 function getCopyButton(messageId: string): HTMLButtonElement {
-  const html = domMock.messagesElement.innerHTML;
-  const buttonPattern = new RegExp(
-    `<button\\b(?=[^>]*data-copy-message-id="${messageId}")[\\s\\S]*?<\\/button>`,
+  const button = domMock.messagesElement.querySelector<HTMLButtonElement>(
+    `[data-copy-message-id="${messageId}"]`,
   );
-  const match = html.match(buttonPattern);
-  if (!match) {
+  if (!button) {
     throw new Error(`Copy button not found: ${messageId}`);
   }
-
-  let innerHTML = match[0].replace(/^<button[^>]*>|<\/button>$/g, '');
-  const attributes = new Map<string, string>();
-  for (const [, name, value] of match[0].matchAll(/\s([a-z-]+)="([^"]*)"/g)) {
-    attributes.set(name, value);
-  }
-
-  const button = {
-    dataset: {
-      copyMessageId: messageId,
-    },
-    innerHTML,
-    textContent: innerHTML.replace(/<[^>]+>/g, ''),
-    closest(selector: string) {
-      return selector === '[data-copy-message-id]' ? button : null;
-    },
-    getAttribute(name: string) {
-      return attributes.get(name) ?? null;
-    },
-    setAttribute(name: string, value: string) {
-      attributes.set(name, value);
-    },
-  } as unknown as HTMLButtonElement;
-
-  Object.defineProperty(button, 'innerHTML', {
-    get() {
-      return innerHTML;
-    },
-    set(value: string) {
-      innerHTML = value;
-    },
-  });
 
   return button;
 }

@@ -110,5 +110,8 @@
   },
   "message_reasoning": {
     "message": "思考過程"
+  },
+  "chat_disclaimer": {
+    "message": "ClawTab 也可能會犯錯，請查核重要資訊。"
   }
 }

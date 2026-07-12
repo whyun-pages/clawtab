@@ -18,6 +18,7 @@ import {
   setConfigStatus,
 } from './config-controller';
 import { formElement, inputElement, submitButton } from './dom';
+import { bindImagePreview } from './image-preview';
 import { bindMessageCopyActions } from './message-copy';
 import { renderMessages, renderRealtimeMessage } from './message-view';
 import { mountSessionPanel, refreshSessionPanel } from './session-panel';
@@ -63,6 +64,7 @@ async function bootstrap(): Promise<void> {
 
   bindMessageCopyActions();
   bindCitationActions();
+  bindImagePreview();
   bindChatForm();
   bindShortcut();
   mountSettingsPanel({
