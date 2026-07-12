@@ -1,0 +1,114 @@
+{
+  "ext_name": {
+    "message": "ClawTab"
+  },
+  "ext_description": {
+    "message": "A browser assistant that summarizes tab contents and chats about them inside the Chrome side panel."
+  },
+  "app_new_session": {
+    "message": "New chat"
+  },
+  "session_new": {
+    "message": "New chat"
+  },
+  "session_list_empty": {
+    "message": "No sessions yet"
+  },
+  "session_action_rename": {
+    "message": "Rename"
+  },
+  "session_action_delete": {
+    "message": "Delete session"
+  },
+  "session_confirm_delete": {
+    "message": "Delete session “$TITLE$”?",
+    "placeholders": {
+      "title": { "content": "$1" }
+    }
+  },
+  "session_default_title": {
+    "message": "New chat"
+  },
+  "session_welcome_message": {
+    "message": "Hi, I'm ClawTab. Set the LLM Base URL and API Key in Settings, and I'll answer you through the real LLM endpoint."
+  },
+  "session_panel_label": {
+    "message": "Session list"
+  },
+  "config_status_unconfigured": {
+    "message": "API Key not configured. Messages will not reach a real LLM endpoint."
+  },
+  "config_status_configured": {
+    "message": "Using $BASE_URL$, model $MODEL$.",
+    "placeholders": {
+      "base_url": { "content": "$1" },
+      "model": { "content": "$2" }
+    }
+  },
+  "settings_title": {
+    "message": "Settings"
+  },
+  "settings_panel_label": {
+    "message": "Settings panel"
+  },
+  "settings_nav_llm": {
+    "message": "LLM"
+  },
+  "settings_nav_display": {
+    "message": "Display"
+  },
+  "settings_llm_title": {
+    "message": "LLM"
+  },
+  "settings_field_base_url": {
+    "message": "Base URL"
+  },
+  "settings_field_api_key": {
+    "message": "API Key"
+  },
+  "settings_field_model": {
+    "message": "Model"
+  },
+  "settings_save": {
+    "message": "Save"
+  },
+  "display_title": {
+    "message": "Display"
+  },
+  "display_language_label": {
+    "message": "Interface language"
+  },
+  "display_language_auto": {
+    "message": "Follow browser"
+  },
+  "display_language_zh_cn": {
+    "message": "简体中文"
+  },
+  "display_language_en": {
+    "message": "English"
+  },
+  "display_language_ja": {
+    "message": "日本語"
+  },
+  "display_language_zh_tw": {
+    "message": "繁體中文"
+  },
+  "chat_placeholder": {
+    "message": "Ask about the current page, or type a question about prices / trends / video summaries..."
+  },
+  "chat_send": {
+    "message": "Send"
+  },
+  "message_copy": {
+    "message": "Copy"
+  },
+  "message_copied": {
+    "message": "Copied"
+  },
+  "message_copy_failed": {
+    "message": "Copy failed"
+  },
+  "message_reasoning": {
+    "message": "Reasoning"
+  }
+}

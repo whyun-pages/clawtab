@@ -1,6 +1,14 @@
 import { defaultLogger } from '../../lib/logger';
 import { ExtractPayload, ExtractResult } from '../interfaces';
-
+/**
+ * 淘宝搜索结果提取器 - 在浏览器控制台中运行
+ * 提取搜索结果列表，转为 Markdown 表格/列表
+ *
+ * 使用方法：在淘宝搜索结果页打开开发者工具(F12)，粘贴到 Console 中执行
+ *
+ * 淘宝搜索页使用 CSS Module 哈希类名（如 title--ASSt27UY），
+ * 本脚本使用前缀匹配策略。
+ */
 export abstract class AbstractContentExtractor {
   protected body: HTMLElement;
   protected url: string;
@@ -69,7 +77,7 @@ export abstract class AbstractContentExtractor {
       await this.waitForStableDOM();
     } catch (err) {
       // 超时了也继续往下走，毕竟有可能是个动态页面，等 DOM 稳定了再抽取
-      defaultLogger.warn(
+      defaultLogger.info(
         this.url,
         'Content extractor ready check failed:',
         err,

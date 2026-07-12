@@ -1,0 +1,114 @@
+{
+  "ext_name": {
+    "message": "ClawTab"
+  },
+  "ext_description": {
+    "message": "Chrome サイドパネルで開いているタブの内容をまとめ、対話できるブラウザ拡張。"
+  },
+  "app_new_session": {
+    "message": "新しい会話"
+  },
+  "session_new": {
+    "message": "新しい会話"
+  },
+  "session_list_empty": {
+    "message": "会話はありません"
+  },
+  "session_action_rename": {
+    "message": "名前を変更"
+  },
+  "session_action_delete": {
+    "message": "会話を削除"
+  },
+  "session_confirm_delete": {
+    "message": "会話「$TITLE$」を削除しますか？",
+    "placeholders": {
+      "title": { "content": "$1" }
+    }
+  },
+  "session_default_title": {
+    "message": "新しい会話"
+  },
+  "session_welcome_message": {
+    "message": "こんにちは、ClawTab です。まず設定で LLM の Base URL と API Key を入力すると、実際の LLM で応答します。"
+  },
+  "session_panel_label": {
+    "message": "会話リスト"
+  },
+  "config_status_unconfigured": {
+    "message": "API Key 未設定です。メッセージは実際の LLM には送信されません。"
+  },
+  "config_status_configured": {
+    "message": "$BASE_URL$ を使用中、モデル $MODEL$。",
+    "placeholders": {
+      "base_url": { "content": "$1" },
+      "model": { "content": "$2" }
+    }
+  },
+  "settings_title": {
+    "message": "設定"
+  },
+  "settings_panel_label": {
+    "message": "設定パネル"
+  },
+  "settings_nav_llm": {
+    "message": "LLM"
+  },
+  "settings_nav_display": {
+    "message": "表示"
+  },
+  "settings_llm_title": {
+    "message": "LLM"
+  },
+  "settings_field_base_url": {
+    "message": "Base URL"
+  },
+  "settings_field_api_key": {
+    "message": "API Key"
+  },
+  "settings_field_model": {
+    "message": "モデル"
+  },
+  "settings_save": {
+    "message": "保存"
+  },
+  "display_title": {
+    "message": "表示"
+  },
+  "display_language_label": {
+    "message": "表示言語"
+  },
+  "display_language_auto": {
+    "message": "ブラウザに合わせる"
+  },
+  "display_language_zh_cn": {
+    "message": "简体中文"
+  },
+  "display_language_en": {
+    "message": "English"
+  },
+  "display_language_ja": {
+    "message": "日本語"
+  },
+  "display_language_zh_tw": {
+    "message": "繁體中文"
+  },
+  "chat_placeholder": {
+    "message": "今開いているページの要約や、価格 / トレンド / 動画のまとめを聞いてください..."
+  },
+  "chat_send": {
+    "message": "送信"
+  },
+  "message_copy": {
+    "message": "コピー"
+  },
+  "message_copied": {
+    "message": "コピーしました"
+  },
+  "message_copy_failed": {
+    "message": "コピーに失敗しました"
+  },
+  "message_reasoning": {
+    "message": "推論"
+  }
+}

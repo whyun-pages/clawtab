@@ -4,7 +4,7 @@ import type {
   OnToolCallFinishEvent,
   OnToolCallStartEvent,
 } from 'ai';
-import { generateText, stepCountIs, streamText } from 'ai';
+import { stepCountIs, streamText } from 'ai';
 
 import { gatewayTools, GatewayTools, ToolName } from '../ai/tools';
 import { defaultLogger } from '../lib/logger';
@@ -22,8 +22,7 @@ interface StreamLlmResult {
 
 export type LlmInputMessage = Pick<ChatMessage, 'role' | 'content'>;
 
-type GatewayOptions = Parameters<typeof streamText<GatewayTools>>[0] &
-  Parameters<typeof generateText<GatewayTools>>[0];
+type GatewayOptions = Parameters<typeof streamText<GatewayTools>>[0];
 
 function createProvider(config: LlmConfig) {
   return createOpenAICompatible({
@@ -114,24 +113,6 @@ function buildGatewayOptions(
       });
     },
   };
-}
-
-export async function requestLlm(
-  config: LlmConfig,
-  messages: LlmInputMessage[],
-): Promise<string> {
-  try {
-    const { text } = await generateText(buildGatewayOptions(config, messages));
-
-    if (text.trim()) {
-      return text;
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`大模型请求失败: ${message}`, { cause: error });
-  }
-
-  throw new Error('大模型返回了空响应。');
 }
 
 export async function streamLlm(

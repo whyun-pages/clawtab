@@ -16,7 +16,7 @@
           aria-expanded="false"
           aria-controls="session-panel"
         >
-          <span class="toolbar__session-label" id="session-label">新会话</span>
+          <span class="toolbar__session-label" id="session-label" data-i18n="app_new_session">新会话</span>
           <span class="toolbar__session-caret" aria-hidden="true">▾</span>
         </button>
         <div class="toolbar__actions">
@@ -24,6 +24,8 @@
             id="session-new"
             class="toolbar__icon-btn"
             type="button"
+            data-i18n-title="session_new"
+            data-i18n-aria-label="session_new"
             title="新建会话"
             aria-label="新建会话"
           >
@@ -33,6 +35,8 @@
             id="settings-toggle"
             class="toolbar__icon-btn"
             type="button"
+            data-i18n-title="settings_title"
+            data-i18n-aria-label="settings_title"
             title="设置"
             aria-label="设置"
             aria-haspopup="true"
@@ -48,6 +52,7 @@
         id="session-panel"
         class="panel panel--session"
         role="dialog"
+        data-i18n-aria-label="session_panel_label"
         aria-label="会话列表"
         hidden
       >
@@ -56,6 +61,7 @@
           id="session-panel-new"
           class="panel__primary"
           type="button"
+          data-i18n="session_new"
         >
           新建会话
         </button>
@@ -65,26 +71,92 @@
         id="settings-panel"
         class="panel panel--settings"
         role="dialog"
-        aria-label="大模型设置"
+        data-i18n-aria-label="settings_panel_label"
+        aria-label="设置面板"
         hidden
       >
-        <h2 class="panel__title">大模型设置</h2>
-        <form id="config-form" class="settings__form">
-          <label class="settings__field">
-            <span>Base URL</span>
-            <input id="config-base-url" type="url" placeholder="http://127.0.0.1:18789/v1" />
-          </label>
-          <label class="settings__field">
-            <span>API Key</span>
-            <input id="config-api-key" type="password" placeholder="LLM API Key" />
-          </label>
-          <label class="settings__field">
-            <span>Model</span>
-            <input id="config-model" type="text" placeholder="openclaw/default" />
-          </label>
-          <p id="config-status" class="settings__status"></p>
-          <button class="panel__primary" type="submit">保存配置</button>
-        </form>
+        <h2 class="panel__title" data-i18n="settings_title">设置</h2>
+        <div class="settings__body">
+          <aside
+            id="settings-nav"
+            class="settings__nav"
+            role="tablist"
+            aria-orientation="vertical"
+          >
+            <button
+              type="button"
+              class="settings__nav-item settings__nav-item--active"
+              role="tab"
+              data-section="llm"
+              aria-controls="settings-section-llm"
+              aria-selected="true"
+              data-i18n="settings_nav_llm"
+            >
+              大模型
+            </button>
+            <button
+              type="button"
+              class="settings__nav-item"
+              role="tab"
+              data-section="display"
+              aria-controls="settings-section-display"
+              aria-selected="false"
+              data-i18n="settings_nav_display"
+            >
+              显示
+            </button>
+          </aside>
+          <div class="settings__content">
+            <section
+              id="settings-section-llm"
+              class="settings__section"
+              role="tabpanel"
+              data-section="llm"
+            >
+              <h3 class="settings__section-title" data-i18n="settings_llm_title">大模型</h3>
+              <form id="config-form" class="settings__form">
+                <label class="settings__field">
+                  <span data-i18n="settings_field_base_url">Base URL</span>
+                  <input id="config-base-url" type="url" placeholder="http://127.0.0.1:18789/v1" />
+                </label>
+                <label class="settings__field">
+                  <span data-i18n="settings_field_api_key">API Key</span>
+                  <input
+                    id="config-api-key"
+                    type="password"
+                    data-i18n-placeholder="settings_field_api_key"
+                    placeholder="LLM API Key"
+                  />
+                </label>
+                <label class="settings__field">
+                  <span data-i18n="settings_field_model">Model</span>
+                  <input id="config-model" type="text" placeholder="openclaw/default" />
+                </label>
+                <p id="config-status" class="settings__status"></p>
+                <button class="panel__primary" type="submit" data-i18n="settings_save">保存配置</button>
+              </form>
+            </section>
+            <section
+              id="settings-section-display"
+              class="settings__section"
+              role="tabpanel"
+              data-section="display"
+              hidden
+            >
+              <h3 class="settings__section-title" data-i18n="display_title">显示</h3>
+              <label class="settings__field">
+                <span data-i18n="display_language_label">界面语言</span>
+                <select id="settings-language" class="settings__select">
+                  <option value="auto" data-i18n="display_language_auto">跟随浏览器</option>
+                  <option value="zh_CN" data-i18n="display_language_zh_cn">简体中文</option>
+                  <option value="en" data-i18n="display_language_en">English</option>
+                  <option value="ja" data-i18n="display_language_ja">日本語</option>
+                  <option value="zh_TW" data-i18n="display_language_zh_tw">繁體中文</option>
+                </select>
+              </label>
+            </section>
+          </div>
+        </div>
       </section>
 
       <section id="messages" class="messages" aria-live="polite"></section>
@@ -94,10 +166,11 @@
           id="chat-input"
           class="composer__input"
           rows="4"
+          data-i18n-placeholder="chat_placeholder"
           placeholder="问我当前网页在讲什么，或直接问价格 / 热点 / 视频总结..."
         ></textarea>
         <div class="composer__actions">
-          <button id="submit-button" class="composer__submit" type="submit">发送</button>
+          <button id="submit-button" class="composer__submit" type="submit" data-i18n="chat_send">发送</button>
         </div>
       </form>
     </main>

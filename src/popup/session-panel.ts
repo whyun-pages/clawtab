@@ -11,6 +11,7 @@ import type {
   SessionSwitchRequest,
   SessionSwitchResponse,
 } from '../shared/types';
+import { t } from '../shared/i18n';
 import {
   sessionLabelElement,
   sessionListElement,
@@ -27,12 +28,23 @@ interface MountOptions {
   onSessionChanged: () => void | Promise<void>;
 }
 
-const DEFAULT_LABEL = '新会话';
-
 let sessions: Session[] = [];
 let currentSid: string = '';
 let onSessionChangedCb: MountOptions['onSessionChanged'] = () => {};
 let mounted = false;
+
+/**
+ * Resolve a session's display title. Sessions created by the extension are
+ * stored with a translation key (`titleKey`) so they re-localize as the user
+ * switches languages; sessions that a user has explicitly renamed persist the
+ * literal `title` and honor that intent.
+ */
+function resolveSessionTitle(session: Session): string {
+  if (session.titleKey) {
+    return t(session.titleKey);
+  }
+  return session.title;
+}
 
 export function mountSessionPanel(options: MountOptions): void {
   if (mounted) {
@@ -68,6 +80,19 @@ export function getCurrentSid(): string {
   return currentSid;
 }
 
+/**
+ * Re-render session labels and list. Used after a locale change so that
+ * translated strings (default titles, empty-state, action tooltips) refresh
+ * without a full remount.
+ */
+export function refreshSessionPanel(): void {
+  if (!mounted) {
+    return;
+  }
+  renderLabel();
+  renderList();
+}
+
 async function createAndSwitch(): Promise<void> {
   const request: SessionCreateRequest = { type: 'session/create' };
   const response: SessionCreateResponse =
@@ -94,7 +119,9 @@ function renderLabel(): void {
     return;
   }
   const current = sessions.find((session) => session.sid === currentSid);
-  sessionLabelElement.textContent = current?.title || DEFAULT_LABEL;
+  sessionLabelElement.textContent = current
+    ? resolveSessionTitle(current)
+    : t('app_new_session');
 }
 
 function renderList(): void {
@@ -107,7 +134,7 @@ function renderList(): void {
   if (sessions.length === 0) {
     const empty = document.createElement('li');
     empty.className = 'session-list__empty';
-    empty.textContent = '暂无会话';
+    empty.textContent = t('session_list_empty');
     sessionListElement.append(empty);
     return;
   }
@@ -125,19 +152,24 @@ function renderSessionItem(session: Session): HTMLLIElement {
   }
   item.dataset.sid = session.sid;
 
+  const displayTitle = resolveSessionTitle(session);
+
   const title = document.createElement('span');
   title.className = 'session-list__title';
-  title.textContent = session.title;
-  title.title = session.title;
+  title.textContent = displayTitle;
+  title.title = displayTitle;
 
   const actions = document.createElement('span');
   actions.className = 'session-list__actions';
 
+  const renameLabel = t('session_action_rename');
+  const deleteLabel = t('session_action_delete');
+
   const renameBtn = document.createElement('button');
   renameBtn.type = 'button';
   renameBtn.className = 'session-list__action';
-  renameBtn.title = '重命名';
-  renameBtn.setAttribute('aria-label', '重命名');
+  renameBtn.title = renameLabel;
+  renameBtn.setAttribute('aria-label', renameLabel);
   renameBtn.textContent = '✎';
   renameBtn.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -147,8 +179,8 @@ function renderSessionItem(session: Session): HTMLLIElement {
   const deleteBtn = document.createElement('button');
   deleteBtn.type = 'button';
   deleteBtn.className = 'session-list__action';
-  deleteBtn.title = '删除会话';
-  deleteBtn.setAttribute('aria-label', '删除会话');
+  deleteBtn.title = deleteLabel;
+  deleteBtn.setAttribute('aria-label', deleteLabel);
   deleteBtn.textContent = '🗑';
   deleteBtn.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -179,10 +211,12 @@ function beginRename(item: HTMLLIElement, session: Session): void {
     return;
   }
 
+  const displayTitle = resolveSessionTitle(session);
+
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'session-list__title-input';
-  input.value = session.title;
+  input.value = displayTitle;
   input.maxLength = 60;
 
   let settled = false;
@@ -196,7 +230,7 @@ function beginRename(item: HTMLLIElement, session: Session): void {
     const nextTitle = input.value.trim();
     input.replaceWith(titleElement);
 
-    if (!commit || !nextTitle || nextTitle === session.title) {
+    if (!commit || !nextTitle || nextTitle === displayTitle) {
       return;
     }
 
@@ -247,7 +281,10 @@ async function switchSession(sid: string): Promise<void> {
 }
 
 async function deleteSession(session: Session): Promise<void> {
-  const confirmed = window.confirm(`确定删除会话「${session.title}」？`);
+  const displayTitle = resolveSessionTitle(session);
+  const confirmed = window.confirm(
+    t('session_confirm_delete', [displayTitle]),
+  );
   if (!confirmed) {
     return;
   }

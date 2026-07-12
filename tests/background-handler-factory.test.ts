@@ -12,7 +12,6 @@ import type {
 describe('background handler factory', () => {
   it.each([
     'content/snapshot',
-    'chat/send',
     'chat/state:get',
     'config/get',
     'config/save',

@@ -93,8 +93,6 @@ popup 同时作为 Manifest 中 `action.default_popup` 与 `side_panel.default_p
 9. 流结束后 background 把 user 消息和完整 assistant 消息写入 IndexedDB
 10. background 发送 `chat/stream:done` 携带完整 history，popup 用其对齐本地状态
 
-非流式接口 `chat/send` 仍保留，但 popup 默认走流式。
-
 ### 会话管理链路
 
 1. popup 启动时调用 `chat/state:get` 拿到当前会话历史、当前 `sid`、会话列表与配置
@@ -118,7 +116,7 @@ connector 负责把“当前上下文”转换成一次可发送给大模型的�
 1. 调用 `decideSkill` 做关键词 skill 判定（结果带回 popup，但不影响 system prompt）
 2. 根据用户问题对标签页快照打分，挑选前 3 个最相关的（仅作为返回结果展示）
 3. 通过 `buildSystemPrompt()`（位置：`src/ai/prompt/system-prompt.ts`）生成 system prompt，强制要求大模型先调用工具读取标签页内容
-4. 通过 `requestLlm` / `streamLlm` 调用 AI SDK
+4. 通过 `streamLlm` 调用 AI SDK
 
 如果配置不完整，connector 直接返回“请先配置 Gateway”的引导文案，不会发请求。
 

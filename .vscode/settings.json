@@ -12,6 +12,7 @@
   },
   "vitest.cliArguments": "--test-timeout=1000000",
   "cSpell.words": [
-    "Feng"
+    "Feng",
+    "Taobao"
   ]
 }

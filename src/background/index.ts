@@ -109,7 +109,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     };
     chrome.tabs.sendMessage(tabId, message).catch((error) => {
       defaultLogger.debug(
-        `Skip url-changed for tabId ${tabId}: ${String(error)}`,
+        `Skip url-changed for tabId ${changeInfo.title || ''} [${tabId}]: ${String(error)}`,
       );
     });
   }

@@ -21,7 +21,6 @@
 当前 `background` 通过 `chrome.runtime.onMessage` 处理以下消息：
 
 - `content/snapshot`
-- `chat/send`
 - `chat/state:get`
 - `config/get`
 - `config/save`
@@ -103,60 +102,6 @@
 ```ts
 { ok: true }
 ```
-
-### `chat/send`
-
-用途：发起一次非流式聊天请求（保留作为兼容，popup 默认走 `chat/stream`）。
-
-发送方：popup
-
-请求结构：
-
-```ts
-{
-  type: "chat/send",
-  message: string
-}
-```
-
-处理流程：
-
-1. 读取大模型配置、当前 `sid` 及该会话历史
-2. 调用 `runConnector()`
-3. 通过 `appendMessages()` 把 user 和 assistant 消息写入 IndexedDB
-4. 返回最新结果和当前会话完整历史
-
-响应结构：
-
-```ts
-{
-  ok: true,
-  result: {
-    reply: string,
-    reasoning?: string,
-    toolCalls?: ToolStreamDelta[],
-    decision: {
-      skill: "shopping" | "social" | "video" | null,
-      reason: string
-    },
-    relatedTabs: PageSnapshot[],
-    mode: "gateway" | "config-required"
-  },
-  history: ChatMessage[]
-}
-```
-
-字段说明：
-
-- `result.reply`：最终返回给前端显示的文本
-- `result.reasoning`：可选，模型返回的思考内容
-- `result.toolCalls`：可选，本轮完成的工具调用（仅 `result` / `error` 事件会保留）
-- `result.decision`：skill 判定结果，仅供 UI 展示
-- `result.relatedTabs`：根据用户问题打分挑出的相关标签页（最多 3 条）
-- `result.mode`：
-  - `gateway`：已成功走真实大模型接口
-  - `config-required`：未完成配置，返回的是引导文案
-- `history`：写入存储后的当前会话完整历史
 
 ### `chat/stream`
 
@@ -535,15 +480,6 @@ const port = chrome.runtime.connect({ name: "chat/stream" });
 ```ts
 const response = await chrome.runtime.sendMessage({
   type: "chat/state:get"
-});
-```
-
-### popup 发送非流式聊天消息
-
-```ts
-const response = await chrome.runtime.sendMessage({
-  type: "chat/send",
-  message: "总结一下这个页面"
 });
 ```
 
