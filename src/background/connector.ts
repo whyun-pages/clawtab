@@ -5,7 +5,9 @@ import type {
   LlmConfig,
   PageSnapshot,
 } from '../shared/types';
+// import { ensureImagesPreserved } from './image-guard';
 import { type LlmInputMessage, streamLlm } from './llm-gateway';
+import { WELCOME_MESSAGE_KEY } from './session-store';
 import { decideSkill } from './skills';
 import type { LlmStreamDelta } from './think-tag-parser';
 
@@ -67,7 +69,10 @@ function buildMissingConfigReply(_relatedTabs: PageSnapshot[]): string {
 function trimHistory(history: ChatMessage[]): LlmInputMessage[] {
   return history
     .slice(-MAX_HISTORY_LENGTH)
-    .filter((entry) => entry.role !== 'system')
+    .filter(
+      (entry) =>
+        entry.role !== 'system' && entry.contentKey !== WELCOME_MESSAGE_KEY,
+    )
     .map((entry) => ({
       role: entry.role,
       content: entry.content,
@@ -113,6 +118,10 @@ export async function runConnectorStream(
   ];
 
   const result = await streamLlm(config, gatewayMessages, onDelta, abortSignal);
+
+  // // 兜底：模型偶尔会漏掉工具正文里的 ![](url) 图片。把工具返回过、
+  // // 但最终答案里缺失的图片补回，保证图文混排不丢图。已存在的图片不重复添加。
+  // const reply = ensureImagesPreserved(result.text, result.toolCalls);
 
   return {
     reply: result.text,

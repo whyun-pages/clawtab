@@ -1,5 +1,5 @@
 import { ExtractResult } from '../interfaces';
-import { qPrefix, qAllPrefix } from '../utils/dom';
+import { qAllPrefix, qPrefix, resolveImageSrc } from '../utils/dom';
 import { AbstractContentExtractor } from './abstract.extractor';
 
 export class TaobaoSearchContentExtractor extends AbstractContentExtractor {
@@ -44,11 +44,10 @@ export class TaobaoSearchContentExtractor extends AbstractContentExtractor {
         '';
 
       // ---- 图片 ----
-      const imgEl = qPrefix('mainPic--', card);
-      let imgSrc = imgEl?.getAttribute('src') || '';
-      if (imgSrc.startsWith('//')) {
-        imgSrc = 'https:' + imgSrc;
-      }
+      // 淘宝搜索结果图片是懒加载的：未进入视口时真实地址通常不在 src 上，
+      // 而在 data-src / data-lazy-src 等属性里，或在 <img> 外层的 background-image。
+      // 后台标签页采集时不会滚动，因此必须兼容这些回退来源，否则图片列为空。
+      const imgSrc = resolveImageSrc(card);
       const imgMd = imgSrc ? `![](${imgSrc})` : '';
 
       // ---- 价格 ----
