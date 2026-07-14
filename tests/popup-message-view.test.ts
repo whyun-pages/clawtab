@@ -18,7 +18,10 @@ const domMock = vi.hoisted(() => {
   // querySelector/insertAdjacentHTML/children/... on the matched <article>,
   // so a string-based stub is not enough — back it with an actual element.
   const messagesElement = document.createElement('div');
-  return { messagesElement };
+  const appElement = document.createElement('main');
+  appElement.className = 'app';
+  appElement.append(messagesElement);
+  return { appElement, messagesElement };
 });
 
 vi.mock('../src/popup/dom', () => ({
@@ -32,6 +35,7 @@ const I18N_STUB: Record<string, string> = {
   message_copy: '复制',
   message_copied: '已复制',
   message_copy_failed: '复制失败',
+  message_new_output: '有新输出，滚动到底部',
   message_reasoning: '思考过程',
 };
 const chromeStub = {
@@ -50,6 +54,13 @@ const chromeStub = {
 describe('popup message view', () => {
   beforeEach(() => {
     domMock.messagesElement.innerHTML = '';
+    domMock.messagesElement.scrollTop = 0;
+    domMock.appElement
+      .querySelectorAll('.messages__new-output')
+      .forEach((node) => node.remove());
+    document.body.innerHTML = '';
+    document.body.append(domMock.appElement);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 100 });
     vi.useRealTimers();
     vi.stubGlobal('chrome', chromeStub);
   });
@@ -201,6 +212,188 @@ describe('popup message view', () => {
     ).toHaveLength(2);
   });
 
+  it('keeps realtime output pinned to the bottom by default', async () => {
+    const { renderRealtimeMessage } = await import('../src/popup/message-view');
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-follow',
+        role: 'assistant',
+        content: '实时回答',
+      }),
+    );
+
+    expect(domMock.messagesElement.scrollTop).toBe(420);
+  });
+
+  it('does not scroll realtime output after the user wheels upward', async () => {
+    const { renderMessages, renderRealtimeMessage } =
+      await import('../src/popup/message-view');
+    renderMessages([
+      makeMessage({ cid: 'assistant-paused', role: 'assistant', content: '' }),
+    ]);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+    domMock.messagesElement.scrollTop = 180;
+
+    domMock.messagesElement.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: -32, bubbles: true }),
+    );
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-paused',
+        role: 'assistant',
+        content: '仍在输出',
+      }),
+    );
+
+    expect(domMock.messagesElement.scrollTop).toBe(180);
+  });
+
+  it('does not scroll realtime output after the user drags the scrollbar upward', async () => {
+    const { renderMessages, renderRealtimeMessage } =
+      await import('../src/popup/message-view');
+    renderMessages([
+      makeMessage({
+        cid: 'assistant-scrollbar',
+        role: 'assistant',
+        content: '',
+      }),
+    ]);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+    domMock.messagesElement.scrollTop = 300;
+    domMock.messagesElement.dispatchEvent(new Event('scroll'));
+
+    domMock.messagesElement.scrollTop = 180;
+    domMock.messagesElement.dispatchEvent(new Event('scroll'));
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-scrollbar',
+        role: 'assistant',
+        content: '拖动后继续输出',
+      }),
+    );
+
+    expect(domMock.messagesElement.scrollTop).toBe(180);
+    expect(getNewOutputButton().hidden).toBe(false);
+  });
+
+  it('keeps the new-output icon outside the scrollable messages content', async () => {
+    const { renderMessages, renderRealtimeMessage } =
+      await import('../src/popup/message-view');
+    renderMessages([
+      makeMessage({ cid: 'assistant-outside', role: 'assistant', content: '' }),
+    ]);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+    domMock.messagesElement.scrollTop = 180;
+
+    domMock.messagesElement.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: -1, bubbles: true }),
+    );
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-outside',
+        role: 'assistant',
+        content: '新输出',
+      }),
+    );
+
+    expect(getNewOutputButton().parentElement).not.toBe(
+      domMock.messagesElement,
+    );
+  });
+
+  it('shows a new-output icon while paused and hides it after click', async () => {
+    const { renderMessages, renderRealtimeMessage } =
+      await import('../src/popup/message-view');
+    renderMessages([
+      makeMessage({ cid: 'assistant-notice', role: 'assistant', content: '' }),
+    ]);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+    domMock.messagesElement.scrollTop = 180;
+
+    domMock.messagesElement.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: -1, bubbles: true }),
+    );
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-notice',
+        role: 'assistant',
+        content: '新输出',
+      }),
+    );
+
+    const button = getNewOutputButton();
+    expect(button.hidden).toBe(false);
+    expect(button.getAttribute('aria-label')).toBe('有新输出，滚动到底部');
+
+    button.click();
+
+    expect(domMock.messagesElement.scrollTop).toBe(420);
+    expect(button.hidden).toBe(true);
+  });
+
+  it('resumes auto-follow after the user scrolls near the bottom', async () => {
+    const { renderMessages, renderRealtimeMessage } =
+      await import('../src/popup/message-view');
+    renderMessages([
+      makeMessage({ cid: 'assistant-resume', role: 'assistant', content: '' }),
+    ]);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+    domMock.messagesElement.scrollTop = 180;
+
+    domMock.messagesElement.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: -1, bubbles: true }),
+    );
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-resume',
+        role: 'assistant',
+        content: '先暂停',
+      }),
+    );
+    expect(getNewOutputButton().hidden).toBe(false);
+
+    domMock.messagesElement.scrollTop = 300;
+    domMock.messagesElement.dispatchEvent(new Event('scroll'));
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-resume',
+        role: 'assistant',
+        content: '恢复跟随',
+      }),
+    );
+
+    expect(domMock.messagesElement.scrollTop).toBe(420);
+    expect(getNewOutputButton().hidden).toBe(true);
+  });
+
+  it('does not scroll from pending image load callbacks while paused', async () => {
+    const { renderMessages } = await import('../src/popup/message-view');
+    vi.stubGlobal('requestAnimationFrame', undefined);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+
+    renderMessages([
+      makeMessage({
+        cid: 'assistant-image',
+        role: 'assistant',
+        content: '![图](https://example.com/a.png)',
+      }),
+    ]);
+    domMock.messagesElement.scrollTop = 180;
+    domMock.messagesElement.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: -1, bubbles: true }),
+    );
+
+    const img = domMock.messagesElement.querySelector<HTMLImageElement>('img');
+    expect(img).not.toBeNull();
+    img?.dispatchEvent(new Event('load'));
+
+    expect(domMock.messagesElement.scrollTop).toBe(180);
+    expect(getNewOutputButton().hidden).toBe(false);
+    vi.unstubAllGlobals();
+  });
+
   it('renders assistant markdown as sanitized HTML', async () => {
     const { renderMessages } = await import('../src/popup/message-view');
 
@@ -336,4 +529,28 @@ function getCopyButton(messageId: string): HTMLButtonElement {
   }
 
   return button;
+}
+
+function getNewOutputButton(): HTMLButtonElement {
+  const button = document.querySelector<HTMLButtonElement>(
+    '.messages__new-output',
+  );
+  if (!button) {
+    throw new Error('New output button not found');
+  }
+  return button;
+}
+
+function setMessagesScrollMetrics(metrics: {
+  clientHeight: number;
+  scrollHeight: number;
+}): void {
+  Object.defineProperty(domMock.messagesElement, 'clientHeight', {
+    configurable: true,
+    value: metrics.clientHeight,
+  });
+  Object.defineProperty(domMock.messagesElement, 'scrollHeight', {
+    configurable: true,
+    value: metrics.scrollHeight,
+  });
 }

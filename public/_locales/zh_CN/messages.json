@@ -111,6 +111,9 @@
   "message_reasoning": {
     "message": "思考过程"
   },
+  "message_new_output": {
+    "message": "有新输出，滚动到底部"
+  },
   "chat_disclaimer": {
     "message": "ClawTab 也可能会犯错，请核查重要信息。"
   }
