@@ -326,16 +326,17 @@ body {
 .messages__new-output {
   position: absolute;
   z-index: 2;
-  right: 22px;
-  bottom: 118px;
-  width: 34px;
-  height: 34px;
+  left: 50%;
+  bottom: 168px;
+  width: 36px;
+  height: 36px;
   display: inline-grid;
   place-items: center;
+  transform: translateX(-50%);
   border: 1px solid #d1d5db;
   border-radius: 999px;
   background: #ffffff;
-  color: #2563eb;
+  color: #000000;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
   cursor: pointer;
   overflow-anchor: none;
@@ -344,7 +345,7 @@ body {
 .messages__new-output:hover {
   border-color: #bfdbfe;
   background: #eff6ff;
-  color: #1d4ed8;
+  color: #000000;
 }
 
 .messages__new-output[hidden] {

@@ -278,6 +278,44 @@ describe('popup message view', () => {
     expect(getNewOutputButton().hidden).toBe(false);
   });
 
+  it('does not reset paused auto-follow during a full history render', async () => {
+    const { renderMessages, renderRealtimeMessage } =
+      await import('../src/popup/message-view');
+    renderMessages([
+      makeMessage({ cid: 'user-final', role: 'user', content: '问题' }),
+      makeMessage({
+        cid: 'assistant-final',
+        role: 'assistant',
+        content: '',
+      }),
+    ]);
+    setMessagesScrollMetrics({ clientHeight: 100, scrollHeight: 420 });
+    domMock.messagesElement.scrollTop = 300;
+    domMock.messagesElement.dispatchEvent(new Event('scroll'));
+
+    domMock.messagesElement.scrollTop = 180;
+    domMock.messagesElement.dispatchEvent(new Event('scroll'));
+    renderRealtimeMessage(
+      makeMessage({
+        cid: 'assistant-final',
+        role: 'assistant',
+        content: '流式输出',
+      }),
+    );
+
+    renderMessages([
+      makeMessage({ cid: 'user-final', role: 'user', content: '问题' }),
+      makeMessage({
+        cid: 'assistant-final',
+        role: 'assistant',
+        content: '最终输出',
+      }),
+    ]);
+
+    expect(domMock.messagesElement.scrollTop).toBe(180);
+    expect(getNewOutputButton().hidden).toBe(false);
+  });
+
   it('keeps the new-output icon outside the scrollable messages content', async () => {
     const { renderMessages, renderRealtimeMessage } =
       await import('../src/popup/message-view');

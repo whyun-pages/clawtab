@@ -21,7 +21,6 @@ export function renderMessages(history: ChatMessage[]): void {
   }
 
   ensureScrollControls();
-  resetAutoFollow();
   clearMessageCopyTexts();
   messagesElement.innerHTML = history
     .map((message) => renderMessage(message))
@@ -136,12 +135,6 @@ function handleMessagesScroll(): void {
     hideNewOutputButton();
   }
   lastKnownScrollTop = currentScrollTop;
-}
-
-function resetAutoFollow(): void {
-  shouldAutoFollowMessages = true;
-  lastKnownScrollTop = messagesElement?.scrollTop ?? 0;
-  hideNewOutputButton();
 }
 
 function pauseAutoFollow(): void {
