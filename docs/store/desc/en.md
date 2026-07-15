@@ -1,31 +1,30 @@
-ClawTab is a browser automation assistant that runs inside the Chrome extension environment. It extracts the title, URL, and main content from the currently open web page (converted to markdown via Mozilla Readability + NodeHtmlMarkdown) and provides a conversational Q&A experience in the side panel.
+ClawTab is a smart assistant that lives in your Chrome side panel. It reads the web page you're on and helps you understand it, answer questions, and pull out the key points — like having someone next to you who's already read the page.
 
-You can use it to quickly understand web page content, ask about page details, summarize the key points of an article, or ask questions to your configured large language model interface based on the current tab's content. Multi-session support lets you maintain several independent conversation contexts in parallel.
+Open the side panel and ask "what's this article about?" — it answers based on the page in front of you. You can also ask it to look things up, compare prices, or find products, and keep several separate chats going at once without them getting mixed up.
 
 Key features:
 
-- Web content Q&A in the Chrome side panel
-- Extracts the title, URL, and body text of the current tab (converted to markdown via Mozilla Readability + NodeHtmlMarkdown), caching snapshots indexed by URL
-- Supports the OpenAI-compatible Chat Completions API
-- Streaming output with support for displaying the model's reasoning process
-- Built-in tool calls: list open tabs and fetch page body snapshots, with tool call results rendered as markdown
-- Open pages in the background and auto-capture content: the model can open a URL without switching focus and read its body; an already-open page is reused
-- Multi-site search: general search (Google / Bing / Baidu) and product search (Taobao / JD / Goofish / Amazon / eBay / Best Buy)
-- In-chat citations: tabs referenced in an answer are clickable and open or focus the target page directly
-- Multi-session management: create, switch, and delete independent conversations
-- Markdown answer rendering and code highlighting
-- Copy questions and answers
-- Multilingual UI: Simplified Chinese, English, Japanese, and Traditional Chinese, switchable in settings
-- Chat sessions and messages persisted to IndexedDB; model configuration saved in `chrome.storage.local`
-- Enter / Shift+Enter shortcuts to send and add a line break
+- Chat about the current web page right in the Chrome side panel
+- Automatically reads the page's title and main text, tidies it up, and answers your questions
+- Shows the answer as it's written, and you can watch it "think" along the way
+- It can list your open tabs and read page content on its own to get things done
+- Quietly opens pages in the background to read them, without interrupting what you're looking at
+- Multi-site search: general search (Google / Bing / Baidu) and shopping comparison (Taobao / JD / Goofish / Amazon / eBay / Best Buy)
+- Pages mentioned in an answer are clickable — jump straight to them
+- Create, switch, and delete as many separate conversations as you like
+- Answers are nicely formatted with Markdown and code highlighting
+- Copy any question or answer with one click
+- Interface in Simplified Chinese, English, Japanese, and Traditional Chinese — switch anytime
+- Your chats and settings are saved locally in your own browser
+- Enter to send, Shift+Enter for a new line
 
 How to use:
 
-1. Open the ClawTab side panel after installing the extension.
-2. Fill in the Base URL, API Key, and Model in "LLM Settings".
+1. Open the ClawTab side panel after installing.
+2. Fill in your model's address, API key, and model name in the settings.
 3. Open any web page.
-4. Ask about the current page content in the input box, or create a new session to start an independent conversation.
+4. Ask about the page in the input box, or start a fresh conversation.
 
-Data notice:
+Privacy note:
 
-ClawTab does not provide its own cloud model service. User input, web page text, and chat context are sent to the large language model interface configured by the user. The API Key, model configuration, sessions and chat history, and web page snapshots are stored in local browser storage by default (`chrome.storage.local` + IndexedDB) and are not uploaded to any third-party service.
+ClawTab doesn't provide its own cloud AI — it uses the model you set up yourself. Whatever you type, the page text, and your chat history are only sent to the model you chose. Your key, settings, chat history, and page content are stored locally in your own browser by default and are never uploaded to any third-party service.
