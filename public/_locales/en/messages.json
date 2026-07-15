@@ -111,6 +111,9 @@
   "message_reasoning": {
     "message": "Reasoning"
   },
+  "message_new_output": {
+    "message": "New output, scroll to bottom"
+  },
   "chat_disclaimer": {
     "message": "ClawTab can make mistakes. Check important info."
   }

@@ -314,12 +314,49 @@ body {
 }
 
 .messages {
+  position: relative;
   flex: 1;
   padding: 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.messages__new-output {
+  position: absolute;
+  z-index: 2;
+  right: 22px;
+  bottom: 118px;
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+  cursor: pointer;
+  overflow-anchor: none;
+}
+
+.messages__new-output:hover {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.messages__new-output[hidden] {
+  display: none;
+}
+
+.messages__new-output-icon {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
 }
 
 .message {

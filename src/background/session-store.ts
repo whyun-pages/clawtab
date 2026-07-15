@@ -15,7 +15,7 @@ const META_CURRENT_SID = 'currentSid';
 // time via `titleKey` / `contentKey`.
 const DEFAULT_SESSION_TITLE_KEY = 'session_default_title';
 const DEFAULT_SESSION_TITLE_FALLBACK = '新会话';
-const WELCOME_MESSAGE_KEY = 'session_welcome_message';
+export const WELCOME_MESSAGE_KEY = 'session_welcome_message';
 const WELCOME_MESSAGE_FALLBACK =
   '你好，我是 ClawTab。先在设置里填入大模型 Base URL 和 API Key，我就会通过真实的大模型接口来回答你。';
 

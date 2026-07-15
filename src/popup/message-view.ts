@@ -8,15 +8,25 @@ import { patchMessageSections } from './message-view-patcher';
 import { getToolRenderer } from './tools';
 import { escapeHtml } from './tools/render-utils';
 
+const AUTO_FOLLOW_BOTTOM_THRESHOLD_PX = 24;
+
+let shouldAutoFollowMessages = true;
+let scrollControlsElement: HTMLElement | null = null;
+let newOutputButton: HTMLButtonElement | null = null;
+let lastKnownScrollTop = 0;
+
 export function renderMessages(history: ChatMessage[]): void {
   if (!messagesElement) {
     return;
   }
 
+  ensureScrollControls();
+  resetAutoFollow();
   clearMessageCopyTexts();
   messagesElement.innerHTML = history
     .map((message) => renderMessage(message))
     .join('');
+  ensureNewOutputButton();
 
   decorateHistoryCitations(history);
 
@@ -28,6 +38,7 @@ export function renderRealtimeMessage(message: ChatMessage): void {
     return;
   }
 
+  ensureScrollControls();
   const existing = messagesElement.querySelector<HTMLElement>(
     `[data-message-id="${escapeCssAttributeValue(message.cid)}"]`,
   );
@@ -61,9 +72,20 @@ function scrollMessagesToBottom(): void {
     return;
   }
 
+  if (!shouldAutoFollowMessages) {
+    showNewOutputButton();
+    return;
+  }
+
   const el = messagesElement;
   const toBottom = (): void => {
+    if (!shouldAutoFollowMessages) {
+      showNewOutputButton();
+      return;
+    }
     el.scrollTop = el.scrollHeight;
+    lastKnownScrollTop = el.scrollTop;
+    hideNewOutputButton();
   };
 
   toBottom();
@@ -77,6 +99,115 @@ function scrollMessagesToBottom(): void {
       img.addEventListener('load', toBottom, { once: true });
     }
   });
+}
+
+function ensureScrollControls(): void {
+  if (!messagesElement || scrollControlsElement === messagesElement) {
+    updateNewOutputButtonLabel();
+    return;
+  }
+
+  scrollControlsElement = messagesElement;
+  lastKnownScrollTop = messagesElement.scrollTop;
+  messagesElement.addEventListener('wheel', handleMessagesWheel, {
+    passive: true,
+  });
+  messagesElement.addEventListener('scroll', handleMessagesScroll);
+  ensureNewOutputButton();
+}
+
+function handleMessagesWheel(event: WheelEvent): void {
+  if (event.deltaY < 0) {
+    pauseAutoFollow();
+    ensureNewOutputButton();
+  }
+}
+
+function handleMessagesScroll(): void {
+  if (!messagesElement) {
+    return;
+  }
+
+  const currentScrollTop = messagesElement.scrollTop;
+  if (currentScrollTop < lastKnownScrollTop) {
+    pauseAutoFollow();
+  } else if (isScrolledNearBottom(messagesElement)) {
+    shouldAutoFollowMessages = true;
+    hideNewOutputButton();
+  }
+  lastKnownScrollTop = currentScrollTop;
+}
+
+function resetAutoFollow(): void {
+  shouldAutoFollowMessages = true;
+  lastKnownScrollTop = messagesElement?.scrollTop ?? 0;
+  hideNewOutputButton();
+}
+
+function pauseAutoFollow(): void {
+  shouldAutoFollowMessages = false;
+}
+
+function isScrolledNearBottom(el: HTMLElement): boolean {
+  return (
+    el.scrollHeight - el.scrollTop - el.clientHeight <=
+    AUTO_FOLLOW_BOTTOM_THRESHOLD_PX
+  );
+}
+
+function ensureNewOutputButton(): HTMLButtonElement | null {
+  if (!messagesElement) {
+    return null;
+  }
+
+  const parent = messagesElement.closest('.app') ?? messagesElement.parentElement;
+  if (!parent) {
+    return null;
+  }
+
+  if (newOutputButton?.parentElement === parent) {
+    updateNewOutputButtonLabel();
+    return newOutputButton;
+  }
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'messages__new-output';
+  button.hidden = true;
+  button.innerHTML =
+    '<span class="messages__new-output-icon" aria-hidden="true"></span>';
+  button.addEventListener('click', () => {
+    shouldAutoFollowMessages = true;
+    hideNewOutputButton();
+    scrollMessagesToBottom();
+  });
+
+  newOutputButton = button;
+  updateNewOutputButtonLabel();
+  parent.append(button);
+  return button;
+}
+
+function updateNewOutputButtonLabel(): void {
+  if (!newOutputButton) {
+    return;
+  }
+
+  newOutputButton.setAttribute('aria-label', t('message_new_output'));
+  newOutputButton.title = t('message_new_output');
+}
+
+function showNewOutputButton(): void {
+  const button = ensureNewOutputButton();
+  if (button) {
+    button.hidden = false;
+  }
+}
+
+function hideNewOutputButton(): void {
+  if (newOutputButton) {
+    newOutputButton.hidden = true;
+  }
 }
 
 function renderMessage(message: ChatMessage): string {
