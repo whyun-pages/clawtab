@@ -20,7 +20,7 @@ ClawTab 是一个运行在 Chrome 扩展环境中的浏览器自动化助手。�
 - 提取当前标签页的标题、URL 和正文文本，按 URL 索引缓存快照
 - 支持 OpenAI-compatible Chat Completions 接口
 - 流式输出，支持展示模型的思考过程（reasoning）
-- 内置工具调用：标签页列表（tabSnapshotListBasic）与网页正文获取（tabSnapshotGet），工具调用结果以 markdown 渲染
+- 内置工具调用：可读取标签页列表与网页正文，工具调用结果以 Markdown 渲染
 - 多会话管理，可创建、切换、删除独立的对话
 - 支持 Markdown 回答渲染、代码高亮
 - 支持复制问题和答案
@@ -68,3 +68,4 @@ Chrome Web Store 至少需要 1 张截图。建议准备以下截图：
 
 - Small promo tile: 440 x 280
 - Marquee promo tile: 1400 x 560
+

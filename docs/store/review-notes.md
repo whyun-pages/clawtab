@@ -65,3 +65,10 @@ ClawTab does **not** load or execute any remote code. All JavaScript is bundled 
 
 The extension processes page text, user questions, chat history, and model configuration. User questions and relevant page content are sent to the user-configured model endpoint. ClawTab does not operate its own backend service.
 
+## Previous rejection response
+
+Use this note when resubmitting a new draft after the Yellow Argon rejection:
+
+```text
+The previous draft was rejected because the store description listed too many marketplace and search-provider names. The listing text has been revised to remove keyword-style provider lists and now describes the feature in plain functional terms: web research and shopping comparison using user-selected search tools. No unrelated keywords were added to the name, short description, detailed description, screenshots, or promotional metadata.
+```

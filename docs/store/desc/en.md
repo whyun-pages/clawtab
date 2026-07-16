@@ -1,6 +1,6 @@
 ClawTab is a smart assistant that lives in your Chrome side panel. It reads the web page you're on and helps you understand it, answer questions, and pull out the key points — like having someone next to you who's already read the page.
 
-Open the side panel and ask "what's this article about?" — it answers based on the page in front of you. You can also ask it to look things up, compare prices, or find products, and keep several separate chats going at once without them getting mixed up.
+Open the side panel and ask "what's this article about?" — it answers based on the page in front of you. You can also ask it to look things up, compare shopping results, or keep several separate chats going at once without them getting mixed up.
 
 Key features:
 
@@ -9,7 +9,7 @@ Key features:
 - Shows the answer as it's written, and you can watch it "think" along the way
 - It can list your open tabs and read page content on its own to get things done
 - Quietly opens pages in the background to read them, without interrupting what you're looking at
-- Multi-site search: general search (Google / Bing / Baidu) and shopping comparison (Taobao / JD / Goofish / Amazon / eBay / Best Buy)
+- Multi-site search for web research and shopping comparison, using the search tools you choose
 - Pages mentioned in an answer are clickable — jump straight to them
 - Create, switch, and delete as many separate conversations as you like
 - Answers are nicely formatted with Markdown and code highlighting
@@ -28,3 +28,4 @@ How to use:
 Privacy note:
 
 ClawTab doesn't provide its own cloud AI — it uses the model you set up yourself. Whatever you type, the page text, and your chat history are only sent to the model you chose. Your key, settings, chat history, and page content are stored locally in your own browser by default and are never uploaded to any third-party service.
+
