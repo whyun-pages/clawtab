@@ -57,6 +57,9 @@
   "settings_nav_display": {
     "message": "顯示"
   },
+  "settings_nav_personalization": {
+    "message": "個人化"
+  },
   "settings_llm_title": {
     "message": "大模型"
   },
@@ -92,6 +95,21 @@
   },
   "display_language_zh_tw": {
     "message": "繁體中文"
+  },
+  "personalization_title": {
+    "message": "個人化"
+  },
+  "personalization_search_results_label": {
+    "message": "搜尋結果列表"
+  },
+  "personalization_search_results_all": {
+    "message": "顯示所有結果"
+  },
+  "personalization_search_results_related": {
+    "message": "只顯示跟搜尋相關內容"
+  },
+  "personalization_search_results_recommended": {
+    "message": "只顯示推薦內容"
   },
   "chat_placeholder": {
     "message": "問我目前網頁在講什麼，或直接問價格 / 熱點 / 影片摘要..."

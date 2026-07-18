@@ -105,6 +105,17 @@
             >
               显示
             </button>
+            <button
+              type="button"
+              class="settings__nav-item"
+              role="tab"
+              data-section="personalization"
+              aria-controls="settings-section-personalization"
+              aria-selected="false"
+              data-i18n="settings_nav_personalization"
+            >
+              个性化
+            </button>
           </aside>
           <div class="settings__content">
             <section
@@ -152,6 +163,23 @@
                   <option value="en" data-i18n="display_language_en">English</option>
                   <option value="ja" data-i18n="display_language_ja">日本語</option>
                   <option value="zh_TW" data-i18n="display_language_zh_tw">繁體中文</option>
+                </select>
+              </label>
+            </section>
+            <section
+              id="settings-section-personalization"
+              class="settings__section"
+              role="tabpanel"
+              data-section="personalization"
+              hidden
+            >
+              <h3 class="settings__section-title" data-i18n="personalization_title">个性化</h3>
+              <label class="settings__field">
+                <span data-i18n="personalization_search_results_label">搜索结果列表</span>
+                <select id="settings-search-results" class="settings__select">
+                  <option value="all" data-i18n="personalization_search_results_all">显示所有结果</option>
+                  <option value="related" data-i18n="personalization_search_results_related">只显示跟搜索相关内容</option>
+                  <option value="recommended" data-i18n="personalization_search_results_recommended">只显示推荐内容</option>
                 </select>
               </label>
             </section>

@@ -15,6 +15,8 @@ describe('background handler factory', () => {
     'chat/state:get',
     'config/get',
     'config/save',
+    'preferences/get',
+    'preferences/save',
     'chat/stream:start',
     'session/list',
     'session/create',

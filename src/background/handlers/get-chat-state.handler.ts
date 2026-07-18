@@ -5,6 +5,7 @@ import type {
 import { getMessages } from '../message-store';
 import { getCurrentSid, listSessions } from '../session-store';
 import { getConfig } from '../storage';
+import { getUserPreferences } from '../../shared/preferences';
 import type { BackgroundMessageHandler, RuntimeHandlerContext } from './types';
 
 export const getChatStateHandler: BackgroundMessageHandler<
@@ -14,8 +15,9 @@ export const getChatStateHandler: BackgroundMessageHandler<
 > = {
   type: 'chat/state:get',
   async process() {
-    const [config, currentSid] = await Promise.all([
+    const [config, preferences, currentSid] = await Promise.all([
       getConfig(),
+      getUserPreferences(),
       getCurrentSid(),
     ]);
     const [history, sessions] = await Promise.all([
@@ -26,6 +28,7 @@ export const getChatStateHandler: BackgroundMessageHandler<
     return {
       ok: true,
       config,
+      preferences,
       history,
       currentSid,
       sessions,

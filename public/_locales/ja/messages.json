@@ -57,6 +57,9 @@
   "settings_nav_display": {
     "message": "表示"
   },
+  "settings_nav_personalization": {
+    "message": "パーソナライズ"
+  },
   "settings_llm_title": {
     "message": "LLM"
   },
@@ -92,6 +95,21 @@
   },
   "display_language_zh_tw": {
     "message": "繁體中文"
+  },
+  "personalization_title": {
+    "message": "パーソナライズ"
+  },
+  "personalization_search_results_label": {
+    "message": "検索結果リスト"
+  },
+  "personalization_search_results_all": {
+    "message": "すべての結果を表示"
+  },
+  "personalization_search_results_related": {
+    "message": "検索に関連する内容のみ表示"
+  },
+  "personalization_search_results_recommended": {
+    "message": "おすすめ内容のみ表示"
   },
   "chat_placeholder": {
     "message": "今開いているページの要約や、価格 / トレンド / 動画のまとめを聞いてください..."

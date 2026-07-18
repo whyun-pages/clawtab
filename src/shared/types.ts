@@ -51,6 +51,12 @@ export interface LlmConfig {
   model: string;
 }
 
+export type SearchResultDisplayMode = 'all' | 'related' | 'recommended';
+
+export interface UserPreferences {
+  searchResultDisplayMode: SearchResultDisplayMode;
+}
+
 export interface SkillDecision {
   skill: SkillName | null;
   reason: string;
@@ -175,6 +181,7 @@ export interface GetChatStateResponse {
   ok: true;
   history: ChatMessage[];
   config: LlmConfig;
+  preferences: UserPreferences;
   currentSid: string;
   sessions: Session[];
 }
@@ -247,6 +254,25 @@ export interface GetConfigRequest {
   type: 'config/get';
 }
 
+export interface GetPreferencesRequest {
+  type: 'preferences/get';
+}
+
+export interface GetPreferencesResponse {
+  ok: true;
+  preferences: UserPreferences;
+}
+
+export interface SavePreferencesRequest {
+  type: 'preferences/save';
+  preferences: Partial<UserPreferences>;
+}
+
+export interface SavePreferencesResponse {
+  ok: true;
+  preferences: UserPreferences;
+}
+
 export interface ContentSnapshotMessage {
   type: 'content/snapshot';
   snapshot: Omit<PageSnapshot, 'tabId'>;
@@ -267,6 +293,8 @@ export type RuntimeMessage =
   | GetChatStateRequest
   | SaveConfigRequest
   | GetConfigRequest
+  | GetPreferencesRequest
+  | SavePreferencesRequest
   | SessionListRequest
   | SessionCreateRequest
   | SessionSwitchRequest

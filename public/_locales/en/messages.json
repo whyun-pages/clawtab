@@ -57,6 +57,9 @@
   "settings_nav_display": {
     "message": "Display"
   },
+  "settings_nav_personalization": {
+    "message": "Personalization"
+  },
   "settings_llm_title": {
     "message": "LLM"
   },
@@ -92,6 +95,21 @@
   },
   "display_language_zh_tw": {
     "message": "繁體中文"
+  },
+  "personalization_title": {
+    "message": "Personalization"
+  },
+  "personalization_search_results_label": {
+    "message": "Search results list"
+  },
+  "personalization_search_results_all": {
+    "message": "Show all results"
+  },
+  "personalization_search_results_related": {
+    "message": "Only show search-related results"
+  },
+  "personalization_search_results_recommended": {
+    "message": "Only show recommended results"
   },
   "chat_placeholder": {
     "message": "Ask about the current page, or type a question about prices / trends / video summaries..."

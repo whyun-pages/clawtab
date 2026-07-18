@@ -6,7 +6,9 @@ import { chatStreamStartHandler } from './chat-stream-start.handler';
 import { contentSnapshotHandler } from './content-snapshot.handler';
 import { getChatStateHandler } from './get-chat-state.handler';
 import { getConfigHandler } from './get-config.handler';
+import { getPreferencesHandler } from './get-preferences.handler';
 import { saveConfigHandler } from './save-config.handler';
+import { savePreferencesHandler } from './save-preferences.handler';
 import { sessionCreateHandler } from './session-create.handler';
 import { sessionDeleteHandler } from './session-delete.handler';
 import { sessionListHandler } from './session-list.handler';
@@ -28,6 +30,8 @@ const handlerRegistry = new Map<
   [getChatStateHandler.type, getChatStateHandler],
   [getConfigHandler.type, getConfigHandler],
   [saveConfigHandler.type, saveConfigHandler],
+  [getPreferencesHandler.type, getPreferencesHandler],
+  [savePreferencesHandler.type, savePreferencesHandler],
   [chatStreamStartHandler.type, chatStreamStartHandler],
   [sessionListHandler.type, sessionListHandler],
   [sessionCreateHandler.type, sessionCreateHandler],

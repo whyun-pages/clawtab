@@ -40,3 +40,5 @@ export const settingsSectionElements =
   document.querySelectorAll<HTMLElement>('.settings__section');
 export const settingsLanguageSelect =
   document.querySelector<HTMLSelectElement>('#settings-language');
+export const settingsSearchResultsSelect =
+  document.querySelector<HTMLSelectElement>('#settings-search-results');

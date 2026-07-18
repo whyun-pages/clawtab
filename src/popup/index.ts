@@ -21,6 +21,7 @@ import { formElement, inputElement, submitButton } from './dom';
 import { bindImagePreview } from './image-preview';
 import { bindMessageCopyActions } from './message-copy';
 import { renderMessages, renderRealtimeMessage } from './message-view';
+import { hydratePersonalizationControlsFromResponse } from './personalization-controller';
 import { mountSessionPanel, refreshSessionPanel } from './session-panel';
 import { mountSettingsPanel } from './settings-panel';
 
@@ -78,6 +79,10 @@ async function bootstrap(): Promise<void> {
   setHistory(response.history);
   setConfig(response.config);
   hydrateConfig(response.config);
+  hydratePersonalizationControlsFromResponse({
+    ok: true,
+    preferences: response.preferences,
+  });
   setConfigStatus(buildConfigStatus(response.config));
   render();
 
@@ -107,6 +112,10 @@ async function refreshChatState(): Promise<void> {
   setHistory(response.history);
   setConfig(response.config);
   hydrateConfig(response.config);
+  hydratePersonalizationControlsFromResponse({
+    ok: true,
+    preferences: response.preferences,
+  });
   setConfigStatus(buildConfigStatus(response.config));
   render();
 }

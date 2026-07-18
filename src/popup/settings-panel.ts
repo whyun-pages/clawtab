@@ -1,6 +1,7 @@
 import type { LlmConfig } from '../shared/types';
 import { bindConfigForm } from './config-controller';
 import { bindDisplayControls } from './display-controller';
+import { bindPersonalizationControls } from './personalization-controller';
 import {
   settingsNavElement,
   settingsPanelElement,
@@ -36,6 +37,7 @@ export function mountSettingsPanel(options: MountOptions): void {
   bindNavClicks();
   bindConfigForm(options.onConfigSaved);
   bindDisplayControls();
+  bindPersonalizationControls();
 }
 
 async function initActiveSection(): Promise<void> {
@@ -93,9 +95,8 @@ function activateSection(section: string): void {
     });
   }
 
-  const navButtons = settingsNavElement?.querySelectorAll<HTMLButtonElement>(
-    '[data-section]',
-  );
+  const navButtons =
+    settingsNavElement?.querySelectorAll<HTMLButtonElement>('[data-section]');
   navButtons?.forEach((button) => {
     const isActive =
       button.dataset.section === (matched ? section : DEFAULT_SECTION);

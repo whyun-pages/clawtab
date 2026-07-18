@@ -108,7 +108,7 @@ export async function runConnectorStream(
   const gatewayMessages: LlmInputMessage[] = [
     {
       role: 'system',
-      content: buildSystemPrompt(),
+      content: await buildSystemPrompt(),
     },
     ...trimHistory(_history),
     {
