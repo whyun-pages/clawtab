@@ -170,13 +170,16 @@ export class JDSearchContentExtractor extends AbstractContentExtractor {
 
     // 输出表格
     lines.push(
-      '| # | 图片 | 商品名称 | 价格 | 销量/热度 | 店铺 | 标签 | 链接 |',
+      '| # | 图片 | 商品名称 | 价格 | 销量/热度 | 店铺 | 标签 |',
     );
-    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| --- | --- | --- | --- | --- | --- | --- |');
 
     items.forEach((item, index) => {
       const imgMd = item.imgSrc ? `![](${item.imgSrc})` : '';
       const escapedTitle = item.title.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+      const titleMd = item.url
+        ? `[${escapedTitle}](${item.url})`
+        : escapedTitle;
       const escapedShop = item.shopName.replace(/\|/g, '\\|');
       const priceDisplay = item.priceLabel
         ? `${item.price} (${item.priceLabel})`
@@ -184,7 +187,7 @@ export class JDSearchContentExtractor extends AbstractContentExtractor {
       const allTags = [...item.tags, ...item.promos].join(' ');
 
       lines.push(
-        `| ${index + 1} | ${imgMd} | ${escapedTitle} | ${priceDisplay} | ${item.sales} | ${escapedShop} | ${allTags} | [链接](${item.url}) |`,
+        `| ${index + 1} | ${imgMd} | ${titleMd} | ${priceDisplay} | ${item.sales} | ${escapedShop} | ${allTags} |`,
       );
     });
 

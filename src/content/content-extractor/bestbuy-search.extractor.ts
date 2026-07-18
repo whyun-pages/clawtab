@@ -171,13 +171,16 @@ export class BestBuySearchContentExtractor extends AbstractContentExtractor {
 
     // 输出表格
     lines.push(
-      '| # | Image | Title | Price | Rating | Reviews | Badge | Link |',
+      '| # | Image | Title | Price | Rating | Reviews | Badge |',
     );
-    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| --- | --- | --- | --- | --- | --- | --- |');
 
     items.forEach((item, index) => {
       const imgMd = item.imgSrc ? `![](${item.imgSrc})` : '';
       const escapedTitle = item.title.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+      const titleMd = item.url
+        ? `[${escapedTitle}](${item.url})`
+        : escapedTitle;
       const ratingDisplay = item.rating ? `⭐${item.rating}` : '';
       const priceDisplay = item.savings
         ? `${item.price} (-${item.savings})`
@@ -185,7 +188,7 @@ export class BestBuySearchContentExtractor extends AbstractContentExtractor {
       const badgeDisplay = item.badge || '';
 
       lines.push(
-        `| ${index + 1} | ${imgMd} | ${escapedTitle} | ${priceDisplay} | ${ratingDisplay} | ${item.reviewCount} | ${badgeDisplay} | [link](${item.url}) |`,
+        `| ${index + 1} | ${imgMd} | ${titleMd} | ${priceDisplay} | ${ratingDisplay} | ${item.reviewCount} | ${badgeDisplay} |`,
       );
     });
 

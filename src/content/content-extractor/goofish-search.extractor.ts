@@ -113,8 +113,8 @@ export class GoofishSearchContentExtractor extends AbstractContentExtractor {
     });
 
     // 输出表格
-    lines.push('| # | 图片 | 商品名称 | 价格 | 热度 | 地区 | 标签 | 链接 |');
-    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| # | 图片 | 商品名称 | 价格 | 热度 | 地区 | 标签 |');
+    lines.push('| --- | --- | --- | --- | --- | --- | --- |');
 
     items.forEach((item, index) => {
       const imgMd = item.imgSrc ? `![](${item.imgSrc})` : '';
@@ -124,9 +124,12 @@ export class GoofishSearchContentExtractor extends AbstractContentExtractor {
           ? item.title.substring(0, 60) + '...'
           : item.title;
       const escapedTitle = shortTitle.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+      const titleMd = item.url
+        ? `[${escapedTitle}](${item.url})`
+        : escapedTitle;
 
       lines.push(
-        `| ${index + 1} | ${imgMd} | ${escapedTitle} | ${item.price} | ${item.wantCount} | ${item.location} | ${item.creditTag} | [链接](${item.url}) |`,
+        `| ${index + 1} | ${imgMd} | ${titleMd} | ${item.price} | ${item.wantCount} | ${item.location} | ${item.creditTag} |`,
       );
     });
 

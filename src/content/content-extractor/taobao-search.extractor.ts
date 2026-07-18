@@ -32,8 +32,8 @@ export class TaobaoSearchContentExtractor extends AbstractContentExtractor {
     lines.push('');
 
     // Markdown 表格头
-    lines.push('| # | 图片 | 商品名称 | 价格 | 销量 | 店铺 | 发货地 | 链接 |');
-    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| # | 图片 | 商品名称 | 价格 | 销量 | 店铺 | 发货地 |');
+    lines.push('| --- | --- | --- | --- | --- | --- | --- |');
 
     itemCards.forEach((card, index) => {
       // ---- 商品标题 ----
@@ -94,9 +94,10 @@ export class TaobaoSearchContentExtractor extends AbstractContentExtractor {
 
       // ---- 组装表格行 ----
       const escapedTitle = title.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+      const titleMd = cleanUrl ? `[${escapedTitle}](${cleanUrl})` : escapedTitle;
       const escapedShop = shopName.replace(/\|/g, '\\|');
       lines.push(
-        `| ${index + 1} | ${imgMd} | ${escapedTitle} | ${price} | ${sales} | ${escapedShop} | ${location} | [链接](${cleanUrl}) |`,
+        `| ${index + 1} | ${imgMd} | ${titleMd} | ${price} | ${sales} | ${escapedShop} | ${location} |`,
       );
     });
 

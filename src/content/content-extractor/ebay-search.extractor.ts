@@ -133,12 +133,15 @@ export class EbaySearchContentExtractor extends AbstractContentExtractor {
     lines.push('');
 
     // 输出表格
-    lines.push('| # | Image | Title | Price | Condition | Details | Link |');
-    lines.push('| --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| # | Image | Title | Price | Condition | Details |');
+    lines.push('| --- | --- | --- | --- | --- | --- |');
 
     items.forEach((item, index) => {
       const imgMd = item.imgSrc ? `![](${item.imgSrc})` : '';
       const escapedTitle = item.title.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+      const titleMd = item.url
+        ? `[${escapedTitle}](${item.url})`
+        : escapedTitle;
       const detailParts: string[] = [...item.attributes];
       if (item.sellerInfo) {
         detailParts.push(`👤${item.sellerInfo}`);
@@ -146,7 +149,7 @@ export class EbaySearchContentExtractor extends AbstractContentExtractor {
       const details = detailParts.join(' · ');
 
       lines.push(
-        `| ${index + 1} | ${imgMd} | ${escapedTitle} | ${item.price} | ${item.condition} | ${details} | [link](${item.url}) |`,
+        `| ${index + 1} | ${imgMd} | ${titleMd} | ${item.price} | ${item.condition} | ${details} |`,
       );
     });
 

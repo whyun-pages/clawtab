@@ -167,19 +167,22 @@ export class AmazonSearchContentExtractor extends AbstractContentExtractor {
 
     // 输出表格
     lines.push(
-      '| # | Image | Title | Price | Rating | Reviews | Bought | Prime | Link |',
+      '| # | Image | Title | Price | Rating | Reviews | Bought | Prime |',
     );
-    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
 
     items.forEach((item, index) => {
       const imgMd = item.imgSrc ? `![](${item.imgSrc})` : '';
       const escapedTitle = item.title.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+      const titleMd = item.url
+        ? `[${escapedTitle}](${item.url})`
+        : escapedTitle;
       const ratingDisplay = item.rating ? `⭐${item.rating}` : '';
       const primeIcon = item.isPrime ? '✓' : '';
       const sponsoredTag = item.isSponsored ? ' 🏷️Ad' : '';
 
       lines.push(
-        `| ${index + 1} | ${imgMd} | ${escapedTitle}${sponsoredTag} | ${item.price} | ${ratingDisplay} | ${item.reviewCount} | ${item.boughtLastMonth} | ${primeIcon} | [link](${item.url}) |`,
+        `| ${index + 1} | ${imgMd} | ${titleMd}${sponsoredTag} | ${item.price} | ${ratingDisplay} | ${item.reviewCount} | ${item.boughtLastMonth} | ${primeIcon} |`,
       );
     });
 
