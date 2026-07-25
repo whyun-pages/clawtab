@@ -153,9 +153,11 @@ function updateReasoningSection(
 ): void {
   const shouldShow =
     message.role === 'assistant' && !!message.reasoning?.trim();
-  const existing = article.querySelector<HTMLElement>(
+  const existing = article.querySelector<HTMLDetailsElement>(
     ':scope > .message__reasoning',
   );
+
+  const answerStarted = !!message.content?.trim();
 
   if (shouldShow && existing) {
     const inner = existing.querySelector<HTMLElement>(':scope > div');
@@ -165,13 +167,27 @@ function updateReasoningSection(
         inner.innerHTML = escapeHtml(message.reasoning!);
       }
     } else {
-      existing.outerHTML = renderReasoningSection(message.reasoning!);
+      existing.outerHTML = renderReasoningSection(
+        message.reasoning!,
+        !answerStarted,
+      );
+      return;
+    }
+    // Keep the reasoning open while the answer has not begun; collapse it once
+    // the first answer token lands. The `autoCollapsed` marker ensures we only
+    // force-collapse a single time, so later answer deltas don't fight a user
+    // who manually re-expands the section.
+    if (!answerStarted) {
+      existing.open = true;
+    } else if (existing.dataset.autoCollapsed !== '1') {
+      existing.open = false;
+      existing.dataset.autoCollapsed = '1';
     }
     return;
   }
 
   if (shouldShow && !existing) {
-    const html = renderReasoningSection(message.reasoning!);
+    const html = renderReasoningSection(message.reasoning!, !answerStarted);
     const tools = article.querySelector<HTMLElement>(
       ':scope > .message__tools',
     );

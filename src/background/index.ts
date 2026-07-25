@@ -30,6 +30,13 @@ chrome.runtime.onStartup.addListener(() => {
   });
 });
 
+// 点击扩展图标时直接打开侧边栏，不再弹出弹出框。
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => {
+    defaultLogger.error('Failed to set side panel behavior.', error);
+  });
+
 // 异步分支需 return true 并保持 sendResponse 在异步完成后调用，否则通道会提前关闭。
 chrome.runtime.onMessage.addListener(
   (message: RuntimeMessage, sender, sendResponse) => {

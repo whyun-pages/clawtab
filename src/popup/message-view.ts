@@ -153,7 +153,8 @@ function ensureNewOutputButton(): HTMLButtonElement | null {
     return null;
   }
 
-  const parent = messagesElement.closest('.app') ?? messagesElement.parentElement;
+  const parent =
+    messagesElement.closest('.app') ?? messagesElement.parentElement;
   if (!parent) {
     return null;
   }
@@ -216,7 +217,7 @@ function renderMessage(message: ChatMessage): string {
       : '';
   const reasoningHtml =
     message.role === 'assistant' && message.reasoning?.trim()
-      ? renderReasoningSection(message.reasoning)
+      ? renderReasoningSection(message.reasoning, !message.content?.trim())
       : '';
   const contentHtml = renderContentSection(message);
   // Citations section is inserted after the article is attached, via
@@ -267,8 +268,13 @@ export function renderToolCallItems(
     .join('');
 }
 
-export function renderReasoningSection(reasoning: string): string {
-  return `<details class="message__reasoning"><summary>${escapeHtml(
+export function renderReasoningSection(
+  reasoning: string,
+  open = false,
+): string {
+  return `<details class="message__reasoning"${
+    open ? ' open' : ''
+  }><summary>${escapeHtml(
     t('message_reasoning'),
   )}</summary><div>${escapeHtml(reasoning)}</div></details>`;
 }

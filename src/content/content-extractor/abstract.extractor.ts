@@ -167,6 +167,16 @@ export abstract class AbstractContentExtractor {
       defaultLogger.info(this.url, 'autoScrollToBottom settle timeout:', err);
     }
   }
+  protected removeStyleAndScriptTagsFromHTML(html: string): string {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    container
+      .querySelectorAll('style, script')
+      .forEach((node) => node.remove());
+
+    return container.innerHTML;
+  }
 
   protected abstract doExtract(): Promise<ExtractResult>;
   public async extract(): Promise<ExtractResult> {
