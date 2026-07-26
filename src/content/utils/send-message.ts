@@ -18,7 +18,7 @@ export async function sendMessage<TResponse = unknown>(
 
   for (let attempt = 0; ; attempt += 1) {
     try {
-      return await chrome.runtime.sendMessage<RuntimeMessage, TResponse>(
+      return await chrome.runtime?.sendMessage<RuntimeMessage, TResponse>(
         message,
       );
     } catch (error) {

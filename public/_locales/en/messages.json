@@ -117,6 +117,9 @@
   "chat_send": {
     "message": "Send"
   },
+  "chat_stop": {
+    "message": "Stop"
+  },
   "message_copy": {
     "message": "Copy"
   },

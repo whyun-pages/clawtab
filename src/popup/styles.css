@@ -376,6 +376,14 @@ body {
   justify-content: flex-end;
   gap: 4px;
   margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.message:hover .message__actions,
+.message:focus-within .message__actions,
+.message__actions:has([data-copy-state]) {
+  opacity: 1;
 }
 
 .message__copy {
@@ -821,11 +829,24 @@ body {
   color: #ffffff;
   font: inherit;
   cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.composer__submit:hover {
+  background: #1f2937;
 }
 
 .composer__submit:disabled {
   opacity: 0.6;
   cursor: progress;
+}
+
+.composer__submit--stop {
+  background: #dc2626;
+}
+
+.composer__submit--stop:hover {
+  background: #b91c1c;
 }
 
 .composer__disclaimer {

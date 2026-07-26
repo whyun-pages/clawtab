@@ -6,7 +6,7 @@ import type {
   GetChatStateRequest,
   GetChatStateResponse,
 } from '../shared/types';
-import { initI18n, LOCALE_CHANGED_EVENT } from '../shared/i18n';
+import { initI18n, LOCALE_CHANGED_EVENT, t } from '../shared/i18n';
 import { applyI18nToDom } from '../shared/i18n-dom';
 import { getConfig, getHistory, setConfig, setHistory } from './chat-state';
 import { bindChatShortcut } from './chat-shortcut';
@@ -43,6 +43,18 @@ function bindChatForm(): void {
       renderRealtimeMessage,
       setSubmitting,
     });
+  });
+
+  // While a response streams, the submit button doubles as a Stop control.
+  // Intercept the click before the form submits so it aborts the active
+  // stream instead of starting a new request.
+  submitButton?.addEventListener('click', (event) => {
+    if (submitButton?.dataset.mode !== 'stop') {
+      return;
+    }
+    event.preventDefault();
+    stopChatStream();
+    setSubmitting(false);
   });
 }
 
@@ -130,7 +142,17 @@ function render(): void {
 }
 
 function setSubmitting(isSubmitting: boolean): void {
-  if (submitButton) {
-    submitButton.disabled = isSubmitting;
+  if (!submitButton) {
+    return;
+  }
+
+  if (isSubmitting) {
+    submitButton.dataset.mode = 'stop';
+    submitButton.classList.add('composer__submit--stop');
+    submitButton.textContent = t('chat_stop');
+  } else {
+    delete submitButton.dataset.mode;
+    submitButton.classList.remove('composer__submit--stop');
+    submitButton.textContent = t('chat_send');
   }
 }
