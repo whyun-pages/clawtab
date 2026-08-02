@@ -170,9 +170,7 @@ export class BestBuySearchContentExtractor extends AbstractContentExtractor {
     });
 
     // 输出表格
-    lines.push(
-      '| # | Image | Title | Price | Rating | Reviews | Badge |',
-    );
+    lines.push('| # | Image | Title | Price | Rating | Reviews | Badge |');
     lines.push('| --- | --- | --- | --- | --- | --- | --- |');
 
     items.forEach((item, index) => {

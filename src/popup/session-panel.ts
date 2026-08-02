@@ -282,9 +282,7 @@ async function switchSession(sid: string): Promise<void> {
 
 async function deleteSession(session: Session): Promise<void> {
   const displayTitle = resolveSessionTitle(session);
-  const confirmed = window.confirm(
-    t('session_confirm_delete', [displayTitle]),
-  );
+  const confirmed = window.confirm(t('session_confirm_delete', [displayTitle]));
   if (!confirmed) {
     return;
   }

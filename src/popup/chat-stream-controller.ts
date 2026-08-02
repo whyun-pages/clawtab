@@ -2,7 +2,6 @@ import type {
   ChatMessage,
   ChatStreamClientMessage,
   ChatStreamServerMessage,
-  ToolStreamDelta,
 } from '../shared/types';
 import { CHAT_STREAM_PORT } from '../shared/types';
 
@@ -99,12 +98,10 @@ function handleStreamMessage(
     } else if (message.deltaType === 'answer') {
       activeAssistantMessage.content += message.delta;
     } else if (message.deltaType === 'tool') {
-      if (isCompletedToolCall(message.delta)) {
-        activeAssistantMessage.toolCalls = [
-          ...(activeAssistantMessage.toolCalls ?? []),
-          message.delta,
-        ];
-      }
+      activeAssistantMessage.toolCalls = [
+        ...(activeAssistantMessage.toolCalls ?? []),
+        message.delta,
+      ];
     }
     context.renderRealtimeMessage(activeAssistantMessage);
     return;
@@ -130,10 +127,4 @@ function clearActiveStream(): void {
   activePort = null;
   activeRequestId = null;
   activeAssistantMessage = null;
-}
-
-function isCompletedToolCall(
-  delta: ToolStreamDelta,
-): delta is Extract<ToolStreamDelta, { event: 'result' | 'error' }> {
-  return delta.event === 'result' || delta.event === 'error';
 }

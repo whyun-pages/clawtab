@@ -135,6 +135,40 @@
   "message_new_output": {
     "message": "New output, scroll to bottom"
   },
+  "activity_title": {
+    "message": "Activity"
+  },
+  "activity_running": {
+    "message": "Calling $1…",
+    "placeholders": {
+      "tool_name": { "content": "$1" }
+    }
+  },
+  "activity_summary": {
+    "message": "$1 tools · $2",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "duration": { "content": "$2" }
+    }
+  },
+  "activity_thinking": {
+    "message": "Thinking"
+  },
+  "activity_thinking_running": {
+    "message": "Thinking…"
+  },
+  "tool_input": {
+    "message": "Input"
+  },
+  "tool_output": {
+    "message": "Output"
+  },
+  "tool_failed": {
+    "message": "Failed"
+  },
+  "tool_unknown": {
+    "message": "Unknown tool"
+  },
   "chat_disclaimer": {
     "message": "ClawTab can make mistakes. Check important info."
   }

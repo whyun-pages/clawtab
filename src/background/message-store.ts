@@ -54,6 +54,9 @@ export async function appendMessages(
         ? { contentKey: input.contentKey }
         : {}),
       ...(input.reasoning !== undefined ? { reasoning: input.reasoning } : {}),
+      ...(input.reasoningMs !== undefined
+        ? { reasoningMs: input.reasoningMs }
+        : {}),
       ...(input.toolCalls !== undefined ? { toolCalls: input.toolCalls } : {}),
       createdAt: now,
       seq: nextSeq,

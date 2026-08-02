@@ -1,10 +1,16 @@
 import type { ToolStreamDelta } from '../shared/types';
 
+/**
+ * Text-only deltas. This is all {@link ThinkTagParser} can ever emit — it
+ * splits a text stream on `<think>` tags and knows nothing about tools.
+ */
+export type LlmTextStreamDelta = {
+  type: 'answer' | 'reasoning';
+  delta: string;
+};
+
 export type LlmStreamDelta =
-  | {
-      type: 'answer' | 'reasoning';
-      delta: string;
-    }
+  | LlmTextStreamDelta
   | {
       type: 'tool';
       delta: ToolStreamDelta;
@@ -16,17 +22,17 @@ export class ThinkTagParser {
   private mode: ParserMode = 'answer';
   private pending = '';
 
-  public push(delta: string): LlmStreamDelta[] {
+  public push(delta: string): LlmTextStreamDelta[] {
     this.pending += delta;
     return this.drain(false);
   }
 
-  public flush(): LlmStreamDelta[] {
+  public flush(): LlmTextStreamDelta[] {
     return this.drain(true);
   }
 
-  private drain(flush: boolean): LlmStreamDelta[] {
-    const parts: LlmStreamDelta[] = [];
+  private drain(flush: boolean): LlmTextStreamDelta[] {
+    const parts: LlmTextStreamDelta[] = [];
 
     while (this.pending.length > 0) {
       const tag = this.mode === 'answer' ? '<think>' : '</think>';
@@ -53,7 +59,7 @@ export class ThinkTagParser {
     return parts;
   }
 
-  private emitText(parts: LlmStreamDelta[], text: string): void {
+  private emitText(parts: LlmTextStreamDelta[], text: string): void {
     if (!text) {
       return;
     }

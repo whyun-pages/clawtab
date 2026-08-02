@@ -169,9 +169,7 @@ export class JDSearchContentExtractor extends AbstractContentExtractor {
     });
 
     // 输出表格
-    lines.push(
-      '| # | 图片 | 商品名称 | 价格 | 销量/热度 | 店铺 | 标签 |',
-    );
+    lines.push('| # | 图片 | 商品名称 | 价格 | 销量/热度 | 店铺 | 标签 |');
     lines.push('| --- | --- | --- | --- | --- | --- | --- |');
 
     items.forEach((item, index) => {

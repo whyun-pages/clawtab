@@ -17,6 +17,8 @@ type ToolLlmStreamDelta = Extract<LlmStreamDelta, { type: 'tool' }>;
 interface StreamLlmResult {
   text: string;
   reasoning?: string;
+  /** 思考耗时（毫秒）：首个 reasoning 分片到思考结束之间的时长。 */
+  reasoningMs?: number;
   toolCalls?: ToolStreamDelta[];
 }
 
@@ -127,13 +129,20 @@ export async function streamLlm(
     );
     const thinkTagParser = new ThinkTagParser();
     const toolNamesById = new Map<string, string>();
+    const toolStartedAtById = new Map<string, number>();
     const toolCalls: ToolStreamDelta[] = [];
     let text = '';
     let reasoning = '';
+    let reasoningFirstAt: number | undefined;
+    let reasoningLastAt: number | undefined;
 
     for await (const part of result.fullStream) {
       if (part.type === 'reasoning-delta') {
         reasoning += part.text;
+        if (reasoningFirstAt === undefined) {
+          reasoningFirstAt = Date.now();
+        }
+        reasoningLastAt = Date.now();
         onDelta({
           type: 'reasoning',
           delta: part.text,
@@ -141,7 +150,7 @@ export async function streamLlm(
         continue;
       }
 
-      const toolDelta = createToolDelta(part, toolNamesById);
+      const toolDelta = createToolDelta(part, toolNamesById, toolStartedAtById);
       if (toolDelta) {
         if (isCompletedToolCall(toolDelta.delta)) {
           toolCalls.push(toolDelta.delta);
@@ -157,6 +166,10 @@ export async function streamLlm(
       for (const parsedPart of thinkTagParser.push(part.text)) {
         if (parsedPart.type === 'reasoning') {
           reasoning += parsedPart.delta;
+          if (reasoningFirstAt === undefined) {
+            reasoningFirstAt = Date.now();
+          }
+          reasoningLastAt = Date.now();
         } else {
           text += parsedPart.delta;
         }
@@ -167,6 +180,10 @@ export async function streamLlm(
     for (const parsedPart of thinkTagParser.flush()) {
       if (parsedPart.type === 'reasoning') {
         reasoning += parsedPart.delta;
+        if (reasoningFirstAt === undefined) {
+          reasoningFirstAt = Date.now();
+        }
+        reasoningLastAt = Date.now();
       } else {
         text += parsedPart.delta;
       }
@@ -180,6 +197,14 @@ export async function streamLlm(
 
       if (reasoning.trim()) {
         streamResult.reasoning = reasoning;
+      }
+
+      if (
+        reasoningFirstAt !== undefined &&
+        reasoningLastAt !== undefined &&
+        reasoningLastAt >= reasoningFirstAt
+      ) {
+        streamResult.reasoningMs = reasoningLastAt - reasoningFirstAt;
       }
 
       if (toolCalls.length > 0) {
@@ -206,8 +231,13 @@ type StreamPart =
 function createToolDelta(
   part: StreamPart,
   toolNamesById: Map<string, string>,
+  toolStartedAtById: Map<string, number>,
 ): ToolLlmStreamDelta | null {
   if (part.type === 'tool-call') {
+    const startedAt = Date.now();
+    if (!toolStartedAtById.has(part.toolCallId)) {
+      toolStartedAtById.set(part.toolCallId, startedAt);
+    }
     toolNamesById.set(part.toolCallId, String(part.toolName));
     return {
       type: 'tool',
@@ -216,11 +246,16 @@ function createToolDelta(
         toolCallId: part.toolCallId,
         toolName: String(part.toolName),
         input: part.input,
+        startedAt,
       },
     };
   }
 
   if (part.type === 'tool-input-start') {
+    const startedAt = Date.now();
+    if (!toolStartedAtById.has(part.id)) {
+      toolStartedAtById.set(part.id, startedAt);
+    }
     toolNamesById.set(part.id, String(part.toolName));
     return {
       type: 'tool',
@@ -228,6 +263,7 @@ function createToolDelta(
         event: 'input-start',
         toolCallId: part.id,
         toolName: String(part.toolName),
+        startedAt,
       },
     };
   }
@@ -257,6 +293,9 @@ function createToolDelta(
 
   if (part.type === 'tool-result') {
     toolNamesById.set(part.toolCallId, String(part.toolName));
+    const startedAt = toolStartedAtById.get(part.toolCallId);
+    const durationMs =
+      startedAt !== undefined ? Date.now() - startedAt : undefined;
     return {
       type: 'tool',
       delta: {
@@ -265,11 +304,16 @@ function createToolDelta(
         toolName: String(part.toolName),
         input: part.input,
         output: part.output,
+        ...(startedAt !== undefined ? { startedAt } : {}),
+        ...(durationMs !== undefined ? { durationMs } : {}),
       },
     };
   }
 
   if (part.type === 'tool-error') {
+    const startedAt = toolStartedAtById.get(part.toolCallId);
+    const durationMs =
+      startedAt !== undefined ? Date.now() - startedAt : undefined;
     return {
       type: 'tool',
       delta: {
@@ -278,6 +322,8 @@ function createToolDelta(
         toolName: String(part.toolName),
         input: part.input,
         error: part.error,
+        ...(startedAt !== undefined ? { startedAt } : {}),
+        ...(durationMs !== undefined ? { durationMs } : {}),
       },
     };
   }

@@ -27,6 +27,7 @@ export interface ChatMessage {
    */
   contentKey?: string;
   reasoning?: string;
+  reasoningMs?: number;
   toolCalls?: ToolStreamDelta[];
   createdAt: number;
   seq: number;
@@ -65,6 +66,7 @@ export interface SkillDecision {
 export interface ConnectorResult {
   reply: string;
   reasoning?: string;
+  reasoningMs?: number;
   toolCalls?: ToolStreamDelta[];
   decision: SkillDecision;
   relatedTabs: PageSnapshot[];
@@ -80,12 +82,14 @@ export type ToolCallStreamDelta = {
   toolCallId: string;
   toolName: string;
   input: unknown;
+  startedAt?: number;
 };
 
 export type ToolInputStartStreamDelta = {
   event: 'input-start';
   toolCallId: string;
   toolName: string;
+  startedAt?: number;
 };
 
 export type ToolInputDeltaStreamDelta = {
@@ -107,6 +111,8 @@ export type ToolResultStreamDelta = {
   toolName: string;
   input: unknown;
   output: unknown;
+  startedAt?: number;
+  durationMs?: number;
 };
 
 export type ToolErrorStreamDelta = {
@@ -115,6 +121,8 @@ export type ToolErrorStreamDelta = {
   toolName: string;
   input: unknown;
   error: unknown;
+  startedAt?: number;
+  durationMs?: number;
 };
 
 export type ToolStreamDelta =

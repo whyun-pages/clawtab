@@ -441,6 +441,113 @@ body {
   color: #ffffff;
 }
 
+.message__activity {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.message__activity summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.message__activity-title {
+  flex-shrink: 0;
+}
+
+.message__activity-status {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message__activity-time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: #6b7280;
+}
+
+.message__activity-body {
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.message__activity-chip {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.message__activity-chip[data-status='running'] {
+  animation: spin 1.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message__activity-chip[data-status='running'] {
+    animation: none;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message__activity-chip[data-status='success'] {
+  color: #10b981;
+}
+
+.message__activity-chip[data-status='error'] {
+  color: #ef4444;
+}
+
+.message__thinking {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 6px;
+  align-items: start;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.message__thinking-label {
+  font-weight: 600;
+}
+
+.message__thinking-text {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  white-space: pre-wrap;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.message__tool-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .message__reasoning {
   margin: 0 0 10px;
   padding: 8px 10px;

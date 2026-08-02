@@ -1,5 +1,6 @@
 import { ToolName } from '../../ai/tools';
 import type { ToolStreamDelta } from '../../shared/types';
+import type { ToolCallView } from '../tool-call-view';
 import { AbstractToolRenderer } from './abstract-tool.renderer';
 import { GenericToolRenderer } from './generic-tool.renderer';
 import { SearchSiteRenderer } from './search-site.renderer';
@@ -9,6 +10,7 @@ import { TabSnapshotListBasicRenderer } from './tab-snapshot-list-basic.renderer
 
 type ToolRendererConstructor = new (
   delta: ToolStreamDelta,
+  view?: ToolCallView,
 ) => AbstractToolRenderer;
 
 const toolRenderers: Record<ToolName, ToolRendererConstructor> = {
@@ -18,20 +20,23 @@ const toolRenderers: Record<ToolName, ToolRendererConstructor> = {
   searchSite: SearchSiteRenderer,
 };
 
-export function getToolRenderer(delta: ToolStreamDelta): AbstractToolRenderer {
+export function getToolRenderer(
+  delta: ToolStreamDelta,
+  view?: ToolCallView,
+): AbstractToolRenderer {
   if (!('toolName' in delta)) {
-    return new GenericToolRenderer(delta);
+    return new GenericToolRenderer(delta, view);
   }
 
   const toolName = delta.toolName;
   if (!toolName) {
-    return new GenericToolRenderer(delta);
+    return new GenericToolRenderer(delta, view);
   }
 
   const Renderer = toolRenderers[toolName as ToolName];
   if (Renderer) {
-    return new Renderer(delta);
+    return new Renderer(delta, view);
   }
 
-  return new GenericToolRenderer(delta);
+  return new GenericToolRenderer(delta, view);
 }

@@ -7,6 +7,12 @@ import { clearMessageCopyTexts, renderMessageCopyButton } from './message-copy';
 import { patchMessageSections } from './message-view-patcher';
 import { getToolRenderer } from './tools';
 import { escapeHtml } from './tools/render-utils';
+import {
+  toToolCallViews,
+  formatDuration,
+  type ToolCallView,
+} from './tool-call-view';
+import { syncActivityTicker } from './activity-ticker';
 
 const AUTO_FOLLOW_BOTTOM_THRESHOLD_PX = 24;
 
@@ -28,6 +34,7 @@ export function renderMessages(history: ChatMessage[]): void {
   ensureNewOutputButton();
 
   decorateHistoryCitations(history);
+  syncActivityTicker(messagesElement);
 
   scrollMessagesToBottom();
 }
@@ -211,13 +218,10 @@ function renderMessage(message: ChatMessage): string {
   }
 
   const className = `message message--${roleClass}`;
-  const toolCallsHtml =
-    message.role === 'assistant' && message.toolCalls?.length
-      ? renderToolCallsSection(message.toolCalls)
-      : '';
-  const reasoningHtml =
-    message.role === 'assistant' && message.reasoning?.trim()
-      ? renderReasoningSection(message.reasoning, !message.content?.trim())
+  const activityHtml =
+    message.role === 'assistant' &&
+    (message.toolCalls?.length || message.reasoning?.trim())
+      ? renderActivitySection(message)
       : '';
   const contentHtml = renderContentSection(message);
   // Citations section is inserted after the article is attached, via
@@ -226,7 +230,7 @@ function renderMessage(message: ChatMessage): string {
 
   return `<article class="${className}" data-message-id="${escapeHtml(
     message.cid,
-  )}">${toolCallsHtml}${reasoningHtml}${contentHtml}${copyHtml}</article>`;
+  )}">${activityHtml}${contentHtml}${copyHtml}</article>`;
 }
 
 function decorateHistoryCitations(history: ChatMessage[]): void {
@@ -260,12 +264,85 @@ export function renderToolCallsSection(
 export function renderToolCallItems(
   toolCalls: NonNullable<ChatMessage['toolCalls']>,
 ): string {
-  return toolCalls
-    .filter(
-      (toolCall) => toolCall.event === 'result' || toolCall.event === 'error',
-    )
-    .map((toolCall) => getToolRenderer(toolCall).render())
+  const views = toToolCallViews(toolCalls);
+  return views
+    .map((view) => getToolRenderer(view.delta, view).render())
     .join('');
+}
+
+export function renderActivitySection(message: ChatMessage): string {
+  const views = toToolCallViews(message.toolCalls ?? []);
+  const hasTools = views.length > 0;
+  const hasReasoning = !!message.reasoning?.trim();
+
+  if (!hasTools && !hasReasoning) {
+    return '';
+  }
+
+  const open = !message.content?.trim();
+  const summaryHtml = renderActivitySummary(views, message);
+  const bodyHtml = renderActivityBody(views, message);
+
+  return `<details class="message__activity"${open ? ' open' : ''}><summary>${summaryHtml}</summary><div class="message__activity-body">${bodyHtml}</div></details>`;
+}
+
+function renderActivitySummary(
+  views: ToolCallView[],
+  message: ChatMessage,
+): string {
+  const title = `<span class="message__activity-title">${escapeHtml(t('activity_title'))}</span>`;
+
+  const runningTool = views.find((v) => v.status === 'running');
+  if (runningTool) {
+    const toolName = runningTool.toolName ?? t('tool_unknown');
+    const statusText = `<span class="message__activity-status">${escapeHtml(t('activity_running', toolName))}</span>`;
+    const timeHtml = runningTool.startedAt
+      ? `<span class="message__activity-time" data-activity-elapsed data-status="running" data-started-at="${runningTool.startedAt}">0ms</span>`
+      : '';
+    return `${title}${statusText}${timeHtml}`;
+  }
+
+  const totalMs =
+    (message.reasoningMs ?? 0) +
+    views.reduce((sum, v) => sum + (v.durationMs ?? 0), 0);
+  const summary =
+    views.length > 0
+      ? t('activity_summary', [
+          String(views.length),
+          totalMs > 0 ? formatDuration(totalMs) : '--',
+        ])
+      : t('activity_thinking');
+
+  return `${title}<span class="message__activity-status">${escapeHtml(summary)}</span>`;
+}
+
+function renderActivityBody(
+  views: ToolCallView[],
+  message: ChatMessage,
+): string {
+  const thinkingHtml = message.reasoning?.trim()
+    ? renderThinkingRow(message)
+    : '';
+  const toolsHtml = views
+    .map((view) => getToolRenderer(view.delta, view).render())
+    .join('');
+  return thinkingHtml + toolsHtml;
+}
+
+function renderThinkingRow(message: ChatMessage): string {
+  const reasoning = message.reasoning!;
+  const reasoningMs = message.reasoningMs;
+  const isRunning = !message.content?.trim();
+
+  const chip = isRunning ? '⟳' : '💭';
+  const label = escapeHtml(t('activity_thinking'));
+  const timeHtml = reasoningMs
+    ? `<span class="message__activity-time">${escapeHtml(formatDuration(reasoningMs))}</span>`
+    : isRunning
+      ? `<span class="message__activity-time" data-thinking-elapsed data-status="running">0ms</span>`
+      : '';
+
+  return `<div class="message__thinking" data-thinking><span class="message__activity-chip" data-status="${isRunning ? 'running' : 'success'}">${chip}</span><span class="message__thinking-label">${label}</span>${timeHtml}<div class="message__thinking-text">${escapeHtml(reasoning)}</div></div>`;
 }
 
 export function renderReasoningSection(

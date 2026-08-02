@@ -135,6 +135,40 @@
   "message_new_output": {
     "message": "有新输出，滚动到底部"
   },
+  "activity_title": {
+    "message": "过程"
+  },
+  "activity_running": {
+    "message": "正在调用 $1…",
+    "placeholders": {
+      "tool_name": { "content": "$1" }
+    }
+  },
+  "activity_summary": {
+    "message": "$1 个工具 · $2",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "duration": { "content": "$2" }
+    }
+  },
+  "activity_thinking": {
+    "message": "思考"
+  },
+  "activity_thinking_running": {
+    "message": "正在思考…"
+  },
+  "tool_input": {
+    "message": "输入"
+  },
+  "tool_output": {
+    "message": "输出"
+  },
+  "tool_failed": {
+    "message": "失败"
+  },
+  "tool_unknown": {
+    "message": "未知工具"
+  },
   "chat_disclaimer": {
     "message": "ClawTab 也可能会犯错，请核查重要信息。"
   }

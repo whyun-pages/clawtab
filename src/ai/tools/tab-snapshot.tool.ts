@@ -16,9 +16,9 @@ export const tabSnapshotGetTool = tool({
     '根据指定标签页 URL 获取该标签页的快照信息，包括 URL、标题和文本内容。',
   inputSchema: tabSnapshotGetInputSchema,
   outputSchema: tabSnapshotGetOutputSchema,
-  execute: ({ tabUrl }) => {
+  execute: async ({ tabUrl }) => {
     defaultLogger.info(`tabSnapshotGetTool called with tabUrl: ${tabUrl}`);
-    const snapshot = getSnapshot(tabUrl);
+    const snapshot = await getSnapshot(tabUrl);
     if (!snapshot) {
       defaultLogger.info(
         `tabSnapshotGetTool: No snapshot found for tabUrl: ${tabUrl}`,
@@ -36,9 +36,9 @@ export const tabSnapshotListBasicTool = tool({
   description: '获取所有标签页的 URL 和标题组成的列表。',
   inputSchema: tabSnapshotListIdsInputSchema,
   outputSchema: tabSnapshotListIdsOutputSchema,
-  execute: () => {
+  execute: async () => {
     defaultLogger.info('tabSnapshotListBasicTool called');
-    const infos = listBasicInfos();
+    const infos = await listBasicInfos();
     return { data: infos };
   },
 });

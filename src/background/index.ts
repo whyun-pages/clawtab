@@ -13,19 +13,18 @@ import {
   getRuntimeMessageHandler,
   getStreamMessageHandler,
 } from './handlers/factory';
-import {
-  loadSnapshotsFromLocalStorage,
-  removeSnapshot,
-} from './tab-content-store';
+import { ensureHydrated, removeSnapshot } from './tab-content-store';
 
+// 走 ensureHydrated 而非直接调用加载函数：store 的每个读写入口都会自行 hydrate，
+// 这里只是把首次加载提前，避免第一个请求为此等待。两者共享同一个 Promise，不会重复加载。
 chrome.runtime.onInstalled.addListener(() => {
   defaultLogger.info('ClawTab installed.');
-  void loadSnapshotsFromLocalStorage().catch((error) => {
+  void ensureHydrated().catch((error) => {
     defaultLogger.error('Failed to load snapshots from local storage.', error);
   });
 });
 chrome.runtime.onStartup.addListener(() => {
-  void loadSnapshotsFromLocalStorage().catch((error) => {
+  void ensureHydrated().catch((error) => {
     defaultLogger.error('Failed to load snapshots from local storage.', error);
   });
 });

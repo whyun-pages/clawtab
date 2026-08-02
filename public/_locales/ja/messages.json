@@ -135,6 +135,40 @@
   "message_new_output": {
     "message": "新しい出力があります。下までスクロール"
   },
+  "activity_title": {
+    "message": "プロセス"
+  },
+  "activity_running": {
+    "message": "$1 を呼び出し中…",
+    "placeholders": {
+      "tool_name": { "content": "$1" }
+    }
+  },
+  "activity_summary": {
+    "message": "$1 個のツール · $2",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "duration": { "content": "$2" }
+    }
+  },
+  "activity_thinking": {
+    "message": "思考"
+  },
+  "activity_thinking_running": {
+    "message": "思考中…"
+  },
+  "tool_input": {
+    "message": "入力"
+  },
+  "tool_output": {
+    "message": "出力"
+  },
+  "tool_failed": {
+    "message": "失敗"
+  },
+  "tool_unknown": {
+    "message": "不明なツール"
+  },
   "chat_disclaimer": {
     "message": "ClawTab も間違えることがあります。重要な情報は確認してください。"
   }

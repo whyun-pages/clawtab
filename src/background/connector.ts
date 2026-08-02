@@ -126,6 +126,9 @@ export async function runConnectorStream(
   return {
     reply: result.text,
     reasoning: result.reasoning,
+    ...(result.reasoningMs !== undefined
+      ? { reasoningMs: result.reasoningMs }
+      : {}),
     toolCalls: result.toolCalls,
     decision,
     relatedTabs,

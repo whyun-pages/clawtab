@@ -94,7 +94,9 @@ export class TaobaoSearchContentExtractor extends AbstractContentExtractor {
 
       // ---- 组装表格行 ----
       const escapedTitle = title.replace(/\|/g, '\\|').replace(/\n/g, ' ');
-      const titleMd = cleanUrl ? `[${escapedTitle}](${cleanUrl})` : escapedTitle;
+      const titleMd = cleanUrl
+        ? `[${escapedTitle}](${cleanUrl})`
+        : escapedTitle;
       const escapedShop = shopName.replace(/\|/g, '\\|');
       lines.push(
         `| ${index + 1} | ${imgMd} | ${titleMd} | ${price} | ${sales} | ${escapedShop} | ${location} |`,

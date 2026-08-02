@@ -16,9 +16,10 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
     const assistantMessageId = crypto.randomUUID();
 
     try {
-      const [config, currentSid] = await Promise.all([
+      const [config, currentSid, snapshots] = await Promise.all([
         getConfig(),
         getCurrentSid(),
+        listSnapshots(),
       ]);
       const history = await getMessages(currentSid);
 
@@ -34,7 +35,7 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
 
       const result = await runConnectorStream(
         message.message,
-        listSnapshots(),
+        snapshots,
         config,
         history,
         (part) => {
@@ -76,6 +77,9 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
           role: 'assistant',
           content: result.reply,
           ...(result.reasoning ? { reasoning: result.reasoning } : {}),
+          ...(result.reasoningMs !== undefined
+            ? { reasoningMs: result.reasoningMs }
+            : {}),
           ...(result.toolCalls ? { toolCalls: result.toolCalls } : {}),
         },
       ]);
