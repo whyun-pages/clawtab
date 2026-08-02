@@ -136,7 +136,7 @@
     "message": "New output, scroll to bottom"
   },
   "activity_title": {
-    "message": "Activity"
+    "message": "> Thinking Process"
   },
   "activity_running": {
     "message": "Calling $1…",

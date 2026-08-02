@@ -5,6 +5,29 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-08-02
+
+### Added
+
+- **Unified activity container**: thinking process and tool calls are now merged into a single collapsible "Activity" section with a consistent UI, showing aggregate timing and real-time elapsed time display for running operations.
+- **Hover-revealed message actions**: copy button and stop button (during streaming) now appear only on hover, reducing visual clutter.
+- **Stop button during streaming**: users can now interrupt ongoing assistant responses with a dedicated stop button that appears while the message is streaming.
+- **Douban search support**: added product search extraction for Douban, expanding multi-site search capabilities.
+- **Preferences settings**: new settings panel for user preferences including language selection and LLM configuration.
+
+### Changed
+
+- **Improved font stack**: replaced system font stack with optimized cross-platform fonts including PingFang SC and Microsoft YaHei for better Chinese rendering.
+- **Toolbar icons to SVG**: replaced text-based toolbar icons with cleaner SVG graphics for a more polished appearance.
+- **Product link placement**: search results now mount product links directly on titles instead of using a separate link column, creating a cleaner layout.
+
+### Fixed
+
+- **Chrome extension compatibility**: resolved various Chrome extension runtime issues for more stable operation.
+- **YouTube authentication**: fixed YouTube video content extraction and authentication flow.
+
+[0.4.0]: https://github.com/whyun-pages/clawtab/compare/v0.3.0...v0.4.0
+
 ## [0.3.0] - 2026-07-15
 
 ### Added

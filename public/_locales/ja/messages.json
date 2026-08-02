@@ -136,7 +136,7 @@
     "message": "新しい出力があります。下までスクロール"
   },
   "activity_title": {
-    "message": "プロセス"
+    "message": "> 推論プロセス"
   },
   "activity_running": {
     "message": "$1 を呼び出し中…",

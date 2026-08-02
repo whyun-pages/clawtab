@@ -136,7 +136,7 @@
     "message": "有新输出，滚动到底部"
   },
   "activity_title": {
-    "message": "过程"
+    "message": "> 思考过程"
   },
   "activity_running": {
     "message": "正在调用 $1…",

@@ -136,7 +136,7 @@
     "message": "有新輸出，捲動到底部"
   },
   "activity_title": {
-    "message": "過程"
+    "message": "> 思考過程"
   },
   "activity_running": {
     "message": "正在呼叫 $1…",
