@@ -6,6 +6,7 @@ import { AmazonSearchContentExtractor } from './amazon-search.extractor';
 import { BaiduSearchContentExtractor } from './baidu-search.extractor';
 import { BestBuyProductExtractor } from './bestbuy-product.extractor';
 import { BestBuySearchContentExtractor } from './bestbuy-search.extractor';
+import { BilibiliVideoExtractor } from './bilibili-video.extractor';
 import { BingSearchContentExtractor } from './bing-search.extractor';
 import { DefaultContentExtractor } from './default.extractor';
 import { DoubanSearchContentExtractor } from './douban-search.extractor';
@@ -18,6 +19,9 @@ import { JDProductExtractor } from './jd-product.extractor';
 import { JDSearchContentExtractor } from './jd-search.extractor';
 import { TaobaoProductExtractor } from './taobao-product.extractor';
 import { TaobaoSearchContentExtractor } from './taobao-search.extractor';
+import { TedTalkExtractor } from './ted-talk.extractor';
+import { VimeoVideoExtractor } from './vimeo-video.extractor';
+import { YoutubeVideoExtractor } from './youtube-video.extractor';
 
 export function getInstance(
   payload: ExtractPayload,
@@ -92,6 +96,48 @@ export function getInstance(
         url.pathname.startsWith('/personal')
       ) {
         return new GoofishSearchContentExtractor(payload);
+      }
+      return new DefaultContentExtractor(payload);
+    case 'vimeo.com':
+    case 'www.vimeo.com':
+    case 'player.vimeo.com':
+      // 播放页路径含纯数字的视频 ID，形如 /123456、/123456/{hash}、
+      // /channels/xxx/123456、/video/123456；/staff 等非播放页交给通用提取器
+      if (/\/\d+(\/|$)/.test(url.pathname)) {
+        return new VimeoVideoExtractor(payload);
+      }
+      return new DefaultContentExtractor(payload);
+    case 'www.ted.com':
+    case 'ted.com':
+      // 演讲页形如 /talks/{slug}，也可能带语言前缀 /zh-cn/talks/{slug}；
+      // 需要 slug 非空，光秃秃的 /talks 列表页不算
+      if (/\/talks\/[^/?#]+/.test(url.pathname)) {
+        return new TedTalkExtractor(payload);
+      }
+      return new DefaultContentExtractor(payload);
+    case 'www.bilibili.com':
+    case 'bilibili.com':
+    case 'm.bilibili.com':
+      // 视频页形如 /video/BV1xx411c7mD
+      if (/\/video\/BV[0-9A-Za-z]+/.test(url.pathname)) {
+        return new BilibiliVideoExtractor(payload);
+      }
+      return new DefaultContentExtractor(payload);
+    case 'www.youtube.com':
+    case 'youtube.com':
+    case 'm.youtube.com':
+      // 普通视频页在 /watch?v=，Shorts 在 /shorts/{id}
+      if (
+        (url.pathname === '/watch' && url.searchParams.get('v')) ||
+        /^\/(?:shorts|live|embed|v)\/[^/?#]+/.test(url.pathname)
+      ) {
+        return new YoutubeVideoExtractor(payload);
+      }
+      return new DefaultContentExtractor(payload);
+    case 'youtu.be':
+      // 短链形如 youtu.be/{videoId}
+      if (/^\/[^/?#]+/.test(url.pathname)) {
+        return new YoutubeVideoExtractor(payload);
       }
       return new DefaultContentExtractor(payload);
     default:

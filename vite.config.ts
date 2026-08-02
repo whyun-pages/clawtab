@@ -47,6 +47,7 @@ export default defineConfig(({ mode }) => {
         sourcemap: true,
         minify: false,
         target: 'chrome114',
+        modulePreload: false,
         rollupOptions: {
           input: {
             popup: path.join(root, 'popup.html'),
