@@ -13,8 +13,6 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
 > = {
   type: 'chat/stream:start',
   async process(message, context) {
-    const assistantMessageId = crypto.randomUUID();
-
     try {
       const [config, currentSid, snapshots] = await Promise.all([
         getConfig(),
@@ -30,7 +28,7 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
       context.postToPort({
         type: 'chat/stream:started',
         requestId: message.requestId,
-        assistantMessageId,
+        assistantMessageId: message.assistantMessageId,
       });
 
       const result = await runConnectorStream(
@@ -66,14 +64,15 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
       if (!context.isConnected()) {
         return;
       }
+      // if (result.)
 
-      const nextHistory = await appendMessages(currentSid, [
+      await appendMessages(currentSid, [
         {
           role: 'user',
           content: message.message,
         },
         {
-          cid: assistantMessageId,
+          cid: message.assistantMessageId,
           role: 'assistant',
           content: result.reply,
           ...(result.reasoning ? { reasoning: result.reasoning } : {}),
@@ -89,7 +88,6 @@ export const chatStreamStartHandler: BackgroundMessageHandler<
         requestId: message.requestId,
         sid: currentSid,
         result,
-        history: nextHistory,
       });
     } catch (error) {
       if (context.abortSignal.aborted || !context.isConnected()) {

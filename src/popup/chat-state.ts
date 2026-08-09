@@ -28,6 +28,10 @@ export function appendMessage(
   return entry;
 }
 
+export function appendToHistory(message: ChatMessage): void {
+  history.push(message);
+}
+
 export function updateMessage(
   cid: string | null,
   updater: (currentContent: string) => string,
