@@ -6,7 +6,7 @@ import {
   STORE_META,
   STORE_SESSIONS,
 } from './idb';
-import { appendMessages, clearMessages } from './message-store';
+import { clearMessages } from './message-store';
 
 const META_CURRENT_SID = 'currentSid';
 // The literal fallbacks are the source-language (zh_CN) strings. They are only
@@ -16,8 +16,8 @@ const META_CURRENT_SID = 'currentSid';
 const DEFAULT_SESSION_TITLE_KEY = 'session_default_title';
 const DEFAULT_SESSION_TITLE_FALLBACK = '新会话';
 export const WELCOME_MESSAGE_KEY = 'session_welcome_message';
-const WELCOME_MESSAGE_FALLBACK =
-  '你好，我是 ClawTab。先在设置里填入大模型 Base URL 和 API Key，我就会通过真实的大模型接口来回答你。';
+// const WELCOME_MESSAGE_FALLBACK =
+//   '你好，我是 ClawTab。先在设置里填入大模型 Base URL 和 API Key，我就会通过真实的大模型接口来回答你。';
 
 export async function listSessions(): Promise<Session[]> {
   const db = await getDb();
@@ -49,13 +49,13 @@ export async function createSession(title?: string): Promise<Session> {
   const db = await getDb();
   await db.put(STORE_SESSIONS, session);
 
-  await appendMessages(session.sid, [
-    {
-      role: 'assistant',
-      content: WELCOME_MESSAGE_FALLBACK,
-      contentKey: WELCOME_MESSAGE_KEY,
-    },
-  ]);
+  // await appendMessages(session.sid, [
+  //   {
+  //     role: 'assistant',
+  //     content: WELCOME_MESSAGE_FALLBACK,
+  //     contentKey: WELCOME_MESSAGE_KEY,
+  //   },
+  // ]);
 
   return session;
 }
@@ -110,13 +110,13 @@ export async function deleteSession(
 
 export async function resetSession(sid: string): Promise<void> {
   await clearMessages(sid);
-  await appendMessages(sid, [
-    {
-      role: 'assistant',
-      content: WELCOME_MESSAGE_FALLBACK,
-      contentKey: WELCOME_MESSAGE_KEY,
-    },
-  ]);
+  // await appendMessages(sid, [
+  //   {
+  //     role: 'assistant',
+  //     content: WELCOME_MESSAGE_FALLBACK,
+  //     contentKey: WELCOME_MESSAGE_KEY,
+  //   },
+  // ]);
 }
 
 export async function getCurrentSid(): Promise<string> {

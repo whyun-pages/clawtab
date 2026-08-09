@@ -217,7 +217,6 @@ export async function streamLlm(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`大模型请求失败: ${message}`, { cause: error });
   }
-
   throw new Error('大模型返回了空响应。');
 }
 
