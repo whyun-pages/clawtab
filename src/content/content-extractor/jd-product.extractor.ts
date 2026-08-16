@@ -3,12 +3,10 @@ import { AbstractContentExtractor } from './abstract.extractor';
 
 export class JDProductExtractor extends AbstractContentExtractor {
   protected doExtract(): Promise<ExtractResult> {
-    // Readability.parse() 会就地改写 DOM；必须传 document 的副本，否则会破坏宿主页
-    const documentClone = document.cloneNode(true) as Document;
     const lines = [];
 
     // ============ 商品标题 ============
-    const titleEl = documentClone.querySelector('.sku-title-name');
+    const titleEl = document.querySelector('.sku-title-name');
     if (titleEl) {
       lines.push(`# ${titleEl.textContent.trim()}`);
       lines.push('');
@@ -18,21 +16,21 @@ export class JDProductExtractor extends AbstractContentExtractor {
     lines.push('## 价格');
     lines.push('');
 
-    const currentPrice = documentClone.querySelector('.product-price--value');
-    const priceUnit = documentClone.querySelector('.product-price--unit');
+    const currentPrice = document.querySelector('.product-price--value');
+    const priceUnit = document.querySelector('.product-price--unit');
     if (currentPrice) {
       const unit = priceUnit ? priceUnit.textContent.trim() : '¥';
       lines.push(`- **现价**：${unit}${currentPrice.textContent.trim()}`);
     }
 
-    const originalPrice = documentClone.querySelector(
+    const originalPrice = document.querySelector(
       '.product-price--gray-line-through',
     );
     if (originalPrice) {
       lines.push(`- **原价**：${originalPrice.textContent.trim()}`);
     }
 
-    const commentCount = documentClone.querySelector(
+    const commentCount = document.querySelector(
       '.product-price-panel--options-comment-count',
     );
     if (commentCount) {
@@ -42,7 +40,7 @@ export class JDProductExtractor extends AbstractContentExtractor {
     lines.push('');
 
     // ============ 规格参数（高亮属性） ============
-    const highlightAttrs = documentClone.querySelector('.highlight-attrs');
+    const highlightAttrs = document.querySelector('.highlight-attrs');
     if (highlightAttrs) {
       lines.push('## 规格参数');
       lines.push('');
@@ -71,7 +69,7 @@ export class JDProductExtractor extends AbstractContentExtractor {
     }
 
     // ============ 规格参数（详细列表） ============
-    const paramList = documentClone.querySelector('.attribute .list');
+    const paramList = document.querySelector('.attribute .list');
     if (paramList) {
       const paramItems = paramList.querySelectorAll('.item');
       if (paramItems.length > 0) {

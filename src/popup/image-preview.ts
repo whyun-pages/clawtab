@@ -2,8 +2,8 @@ import { messagesElement } from './dom';
 
 /**
  * Images rendered inside assistant markdown and tool-output HTML (e.g. product
- * search-result thumbnails). Hovering shows an enlarged preview anchored beside
- * the thumbnail; clicking opens the original in a new tab.
+ * search-result thumbnails). Clicking shows an enlarged preview anchored beside
+ * the thumbnail; clicking the preview opens the original in a new tab.
  */
 const PREVIEW_SELECTOR =
   '.message__markdown img, .message__tool-output--html img';
@@ -136,40 +136,40 @@ function resolvePreviewTarget(
 }
 
 /**
- * One-time delegated hover/click handlers on the messages container. Uses
- * mouseover/mouseout (which bubble) rather than mouseenter/mouseleave so a
- * single listener covers images added by later re-renders.
+ * One-time delegated click handler on the messages container. Clicking a
+ * thumbnail shows the enlarged preview; clicking the preview opens the
+ * original in a new tab; clicking elsewhere closes the preview.
  */
 export function bindImagePreview(): void {
   if (!messagesElement) {
     return;
   }
 
-  messagesElement.addEventListener('mouseover', (event) => {
-    const img = resolvePreviewTarget(event.target);
-    if (img) {
-      showPreview(img);
-    }
-  });
-
-  messagesElement.addEventListener('mouseout', (event) => {
-    const img = resolvePreviewTarget(event.target);
-    if (img) {
-      hidePreview();
-    }
-  });
-
+  // Click on a thumbnail: show the enlarged preview.
   messagesElement.addEventListener('click', (event) => {
     const img = resolvePreviewTarget(event.target);
     if (!img) {
       return;
     }
-    const src = imageSource(img);
-    if (!src) {
+    // Stop propagation so the document listener below does not
+    // immediately close the preview we just opened.
+    event.stopPropagation();
+    showPreview(img);
+  });
+
+  // Click on the preview overlay: open original in a new tab.
+  // Click anywhere else: close the preview.
+  document.addEventListener('click', (event) => {
+    if (!overlay || overlay.hidden) {
       return;
     }
+    if (overlay.contains(event.target as Node)) {
+      const src = overlayImg?.src ?? '';
+      if (src) {
+        window.open(src, '_blank', 'noopener,noreferrer');
+      }
+    }
     hidePreview();
-    window.open(src, '_blank', 'noopener,noreferrer');
   });
 
   // Anchored position goes stale once the list scrolls, so drop the preview.
