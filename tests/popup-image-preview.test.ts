@@ -28,7 +28,7 @@ describe('image preview', () => {
     document.body.appendChild(domMock.app);
   });
 
-  it('shows an enlarged preview on hover and hides it on mouseout', async () => {
+  it('shows an enlarged preview on click and hides it on outside click', async () => {
     const { bindImagePreview } = await import('../src/popup/image-preview');
     bindImagePreview();
 
@@ -38,7 +38,7 @@ describe('image preview', () => {
     const img = domMock.messagesElement.querySelector('img');
     expect(img).not.toBeNull();
 
-    img!.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    img!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     const overlay = domMock.app.querySelector<HTMLElement>('.image-preview');
     expect(overlay).not.toBeNull();
@@ -47,34 +47,52 @@ describe('image preview', () => {
       overlay!.querySelector('img')!.getAttribute('src'),
     ).toBe('https://example.com/a.png');
 
-    img!.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
+    // Click outside the overlay should hide it.
+    document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(overlay!.hidden).toBe(true);
   });
 
-  it('opens the original image in a new tab on click', async () => {
+  it('clicking the same image again closes the preview', async () => {
     const { bindImagePreview } = await import('../src/popup/image-preview');
     bindImagePreview();
 
-    const openSpy = vi.fn();
-    vi.stubGlobal('open', openSpy);
-
     domMock.messagesElement.innerHTML =
-      '<div class="message__tool-output--html">' +
-      '<img src="https://example.com/b.png"></div>';
+      '<div class="message__markdown"><img src="https://example.com/c.png"></div>';
     const img = domMock.messagesElement.querySelector('img');
 
+    // First click — show.
     img!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const overlay = domMock.app.querySelector<HTMLElement>('.image-preview');
+    expect(overlay!.hidden).toBe(false);
 
-    expect(openSpy).toHaveBeenCalledWith(
-      'https://example.com/b.png',
-      '_blank',
-      'noopener,noreferrer',
-    );
-
-    vi.unstubAllGlobals();
+    // Second click on same image — close.
+    img!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(overlay!.hidden).toBe(true);
   });
 
-  it('ignores hover on non-preview elements', async () => {
+  it('clicking a different image switches the preview', async () => {
+    const { bindImagePreview } = await import('../src/popup/image-preview');
+    bindImagePreview();
+
+    domMock.messagesElement.innerHTML =
+      '<div class="message__markdown">' +
+      '<img src="https://example.com/d1.png">' +
+      '<img src="https://example.com/d2.png">' +
+      '</div>';
+    const imgs = domMock.messagesElement.querySelectorAll('img');
+
+    imgs[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const overlay = domMock.app.querySelector<HTMLElement>('.image-preview');
+    expect(overlay!.hidden).toBe(false);
+
+    imgs[1].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(overlay!.hidden).toBe(false);
+    expect(overlay!.querySelector('img')!.getAttribute('src')).toBe(
+      'https://example.com/d2.png',
+    );
+  });
+
+  it('ignores click on non-preview elements', async () => {
     const { bindImagePreview } = await import('../src/popup/image-preview');
     bindImagePreview();
 
@@ -82,7 +100,7 @@ describe('image preview', () => {
       '<article class="message"><div class="message__plain">no image</div></article>';
     const plain = domMock.messagesElement.querySelector('.message__plain');
 
-    plain!.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    plain!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     expect(domMock.app.querySelector('.image-preview')).toBeNull();
   });

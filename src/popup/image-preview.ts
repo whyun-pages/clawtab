@@ -12,16 +12,24 @@ const PREVIEW_MARGIN = 8;
 
 let overlay: HTMLDivElement | null = null;
 let overlayImg: HTMLImageElement | null = null;
+let activeSource: HTMLImageElement | null = null;
+let listenersBound = false;
 
 /**
  * Lazily creates the floating preview overlay and appends it to `.app` — the
  * only positioned ancestor (position:relative, fills the popup viewport). It
  * must not live inside `.messages`, whose overflow would clip it.
+ *
+ * Re-creates the overlay if it was detached from the document (e.g. when tests
+ * reset the DOM between runs).
  */
 function ensureOverlay(): HTMLImageElement | null {
-  if (overlayImg) {
+  if (overlayImg && overlay?.isConnected) {
     return overlayImg;
   }
+  // Previous overlay was detached; start fresh.
+  overlay = null;
+  overlayImg = null;
 
   const app = document.querySelector<HTMLElement>('.app');
   if (!app) {
@@ -59,6 +67,7 @@ function showPreview(source: HTMLImageElement): void {
 
   previewImg.src = src;
   overlay.hidden = false;
+  activeSource = source;
   positionPreview(source);
 }
 
@@ -124,6 +133,7 @@ function hidePreview(): void {
   if (overlay) {
     overlay.hidden = true;
   }
+  activeSource = null;
 }
 
 function resolvePreviewTarget(
@@ -137,38 +147,35 @@ function resolvePreviewTarget(
 
 /**
  * One-time delegated click handler on the messages container. Clicking a
- * thumbnail shows the enlarged preview; clicking the preview opens the
- * original in a new tab; clicking elsewhere closes the preview.
+ * thumbnail toggles the enlarged preview: a second click on the same image
+ * closes it; clicking a different thumbnail switches to that image; clicking
+ * anywhere outside closes the preview.
  */
 export function bindImagePreview(): void {
-  if (!messagesElement) {
+  if (!messagesElement || listenersBound) {
     return;
   }
+  listenersBound = true;
 
-  // Click on a thumbnail: show the enlarged preview.
   messagesElement.addEventListener('click', (event) => {
     const img = resolvePreviewTarget(event.target);
     if (!img) {
       return;
     }
-    // Stop propagation so the document listener below does not
-    // immediately close the preview we just opened.
+    // Stop propagation so the document listener does not close the preview
+    // we are about to open (or keep open with a different source).
     event.stopPropagation();
-    showPreview(img);
+
+    if (activeSource === img && overlay && !overlay.hidden) {
+      // Same image clicked again — toggle off.
+      hidePreview();
+    } else {
+      showPreview(img);
+    }
   });
 
-  // Click on the preview overlay: open original in a new tab.
-  // Click anywhere else: close the preview.
-  document.addEventListener('click', (event) => {
-    if (!overlay || overlay.hidden) {
-      return;
-    }
-    if (overlay.contains(event.target as Node)) {
-      const src = overlayImg?.src ?? '';
-      if (src) {
-        window.open(src, '_blank', 'noopener,noreferrer');
-      }
-    }
+  // Click anywhere outside the messages container closes the preview.
+  document.addEventListener('click', () => {
     hidePreview();
   });
 
