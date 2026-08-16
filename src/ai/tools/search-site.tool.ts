@@ -13,18 +13,27 @@ type SearchSite =
  * 各站点的搜索 URL 模板。由代码统一负责 URL 编码与参数拼接，
  * 模型只需给出 site 与 query 两个语义参数，不再自行拼接 URL。
  * 站点格式变更时只需改这里一处。
+ *
+ * 使用 URL + URLSearchParams 构造，而非手动 encodeURIComponent 拼接，
+ * 可确保 chrome.tabs.create 拿到已规范化的 URL，避免二次编码。
  */
+function buildSearchUrl(base: string, param: string, query: string): string {
+  const url = new URL(base);
+  url.searchParams.set(param, query);
+  return url.href;
+}
+
 const searchUrlBuilders: Record<SearchSite, (query: string) => string> = {
-  google: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`,
-  bing: (q) => `https://www.bing.com/search?q=${encodeURIComponent(q)}`,
-  baidu: (q) => `https://www.baidu.com/s?wd=${encodeURIComponent(q)}`,
-  taobao: (q) => `https://s.taobao.com/search?q=${encodeURIComponent(q)}`,
-  jd: (q) => `https://search.jd.com/Search?keyword=${encodeURIComponent(q)}`,
-  goofish: (q) => `https://www.goofish.com/search?q=${encodeURIComponent(q)}`,
-  amazon: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}`,
-  ebay: (q) => `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}`,
+  google: (q) => buildSearchUrl('https://www.google.com/search', 'q', q),
+  bing: (q) => buildSearchUrl('https://www.bing.com/search', 'q', q),
+  baidu: (q) => buildSearchUrl('https://www.baidu.com/s', 'wd', q),
+  taobao: (q) => buildSearchUrl('https://s.taobao.com/search', 'q', q),
+  jd: (q) => buildSearchUrl('https://search.jd.com/Search', 'keyword', q),
+  goofish: (q) => buildSearchUrl('https://www.goofish.com/search', 'q', q),
+  amazon: (q) => buildSearchUrl('https://www.amazon.com/s', 'k', q),
+  ebay: (q) => buildSearchUrl('https://www.ebay.com/sch/i.html', '_nkw', q),
   bestbuy: (q) =>
-    `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(q)}`,
+    buildSearchUrl('https://www.bestbuy.com/site/searchpage.jsp', 'st', q),
 };
 
 export const searchSiteTool = tool({

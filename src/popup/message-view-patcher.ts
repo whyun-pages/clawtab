@@ -265,14 +265,17 @@ function updateToolCallNodeContent(
 
   if (outputContent !== undefined) {
     if (!outputContainer) {
-      const outputLabel = node.querySelector<HTMLElement>(
+      const inputEl = node.querySelector<HTMLElement>(
+        ':scope > .message__tool-input, :scope > .message__tool-output',
+      );
+      const anchor = inputEl ?? node.querySelector<HTMLElement>(
         ':scope > .message__tool-label:last-of-type',
       );
-      if (outputLabel) {
+      if (anchor) {
         const outputHtml = renderer.isOutputHtml
-          ? `<div class="message__tool-output message__tool-output--html">${outputContent}</div>`
-          : `<pre class="message__tool-output">${escapeHtml(outputContent)}</pre>`;
-        outputLabel.insertAdjacentHTML('afterend', outputHtml);
+          ? `<div class="message__tool-label">${escapeHtml(t('tool_output'))}</div><div class="message__tool-output message__tool-output--html">${outputContent}</div>`
+          : `<div class="message__tool-label">${escapeHtml(t('tool_output'))}</div><pre class="message__tool-output">${escapeHtml(outputContent)}</pre>`;
+        anchor.insertAdjacentHTML('afterend', outputHtml);
       }
     } else {
       if (renderer.isOutputHtml) {

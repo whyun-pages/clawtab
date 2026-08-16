@@ -12,7 +12,6 @@ const PREVIEW_MARGIN = 8;
 
 let overlay: HTMLDivElement | null = null;
 let overlayImg: HTMLImageElement | null = null;
-let activeSource: HTMLImageElement | null = null;
 let listenersBound = false;
 
 /**
@@ -67,7 +66,6 @@ function showPreview(source: HTMLImageElement): void {
 
   previewImg.src = src;
   overlay.hidden = false;
-  activeSource = source;
   positionPreview(source);
 }
 
@@ -133,7 +131,6 @@ function hidePreview(): void {
   if (overlay) {
     overlay.hidden = true;
   }
-  activeSource = null;
 }
 
 function resolvePreviewTarget(
@@ -166,7 +163,7 @@ export function bindImagePreview(): void {
     // we are about to open (or keep open with a different source).
     event.stopPropagation();
 
-    if (activeSource === img && overlay && !overlay.hidden) {
+    if (!overlay?.hidden && overlayImg && overlayImg.src === imageSource(img)) {
       // Same image clicked again — toggle off.
       hidePreview();
     } else {
