@@ -137,6 +137,7 @@ export interface ChatStreamStartMessage {
   type: 'chat/stream:start';
   requestId: string;
   message: string;
+  assistantMessageId: string;
 }
 
 export interface ChatStreamStartedMessage {
@@ -164,7 +165,6 @@ export interface ChatStreamDoneMessage {
   requestId: string;
   sid: string;
   result: ConnectorResult;
-  history: ChatMessage[];
 }
 
 export interface ChatStreamErrorMessage {

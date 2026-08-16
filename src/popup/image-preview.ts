@@ -2,8 +2,8 @@ import { messagesElement } from './dom';
 
 /**
  * Images rendered inside assistant markdown and tool-output HTML (e.g. product
- * search-result thumbnails). Hovering shows an enlarged preview anchored beside
- * the thumbnail; clicking opens the original in a new tab.
+ * search-result thumbnails). Clicking shows an enlarged preview anchored beside
+ * the thumbnail; clicking the preview opens the original in a new tab.
  */
 const PREVIEW_SELECTOR =
   '.message__markdown img, .message__tool-output--html img';
@@ -12,16 +12,23 @@ const PREVIEW_MARGIN = 8;
 
 let overlay: HTMLDivElement | null = null;
 let overlayImg: HTMLImageElement | null = null;
+let listenersBound = false;
 
 /**
  * Lazily creates the floating preview overlay and appends it to `.app` — the
  * only positioned ancestor (position:relative, fills the popup viewport). It
  * must not live inside `.messages`, whose overflow would clip it.
+ *
+ * Re-creates the overlay if it was detached from the document (e.g. when tests
+ * reset the DOM between runs).
  */
 function ensureOverlay(): HTMLImageElement | null {
-  if (overlayImg) {
+  if (overlayImg && overlay?.isConnected) {
     return overlayImg;
   }
+  // Previous overlay was detached; start fresh.
+  overlay = null;
+  overlayImg = null;
 
   const app = document.querySelector<HTMLElement>('.app');
   if (!app) {
@@ -136,40 +143,37 @@ function resolvePreviewTarget(
 }
 
 /**
- * One-time delegated hover/click handlers on the messages container. Uses
- * mouseover/mouseout (which bubble) rather than mouseenter/mouseleave so a
- * single listener covers images added by later re-renders.
+ * One-time delegated click handler on the messages container. Clicking a
+ * thumbnail toggles the enlarged preview: a second click on the same image
+ * closes it; clicking a different thumbnail switches to that image; clicking
+ * anywhere outside closes the preview.
  */
 export function bindImagePreview(): void {
-  if (!messagesElement) {
+  if (!messagesElement || listenersBound) {
     return;
   }
-
-  messagesElement.addEventListener('mouseover', (event) => {
-    const img = resolvePreviewTarget(event.target);
-    if (img) {
-      showPreview(img);
-    }
-  });
-
-  messagesElement.addEventListener('mouseout', (event) => {
-    const img = resolvePreviewTarget(event.target);
-    if (img) {
-      hidePreview();
-    }
-  });
+  listenersBound = true;
 
   messagesElement.addEventListener('click', (event) => {
     const img = resolvePreviewTarget(event.target);
     if (!img) {
       return;
     }
-    const src = imageSource(img);
-    if (!src) {
-      return;
+    // Stop propagation so the document listener does not close the preview
+    // we are about to open (or keep open with a different source).
+    event.stopPropagation();
+
+    if (!overlay?.hidden && overlayImg && overlayImg.src === imageSource(img)) {
+      // Same image clicked again — toggle off.
+      hidePreview();
+    } else {
+      showPreview(img);
     }
+  });
+
+  // Click anywhere outside the messages container closes the preview.
+  document.addEventListener('click', () => {
     hidePreview();
-    window.open(src, '_blank', 'noopener,noreferrer');
   });
 
   // Anchored position goes stale once the list scrolls, so drop the preview.

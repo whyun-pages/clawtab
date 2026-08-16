@@ -184,35 +184,18 @@ function patchToolCallItems(
 
   const desiredIds = new Set<string>();
 
-  views.forEach((view, index) => {
+  views.forEach((view) => {
     const id = view.toolCallId;
     desiredIds.add(id);
     const renderer = getToolRenderer(view.delta, view);
     const existingNode = existingNodes.get(id);
 
     if (!existingNode) {
-      const html = renderer.render();
-      const referenceNode = container.children[index] as
-        | HTMLElement
-        | undefined;
-      if (referenceNode) {
-        referenceNode.insertAdjacentHTML('beforebegin', html);
-      } else {
-        container.insertAdjacentHTML('beforeend', html);
-      }
+      container.insertAdjacentHTML('beforeend', renderer.render());
       return;
     }
 
     updateToolCallNodeContent(existingNode, renderer, view);
-
-    const desiredAtIndex = container.children[index];
-    if (desiredAtIndex !== existingNode) {
-      if (desiredAtIndex) {
-        container.insertBefore(existingNode, desiredAtIndex);
-      } else {
-        container.appendChild(existingNode);
-      }
-    }
   });
 
   existingNodes.forEach((node, id) => {
@@ -252,28 +235,29 @@ function updateToolCallNodeContent(
   }
 
   const inputPre = node.querySelector<HTMLElement>(
-    ':scope > .message__tool-input',
+    ':scope > .message__tool-section--input > .message__tool-input',
   );
   if (inputPre) {
     inputPre.textContent = renderer.input;
   }
 
-  const outputContainer = node.querySelector<HTMLElement>(
-    ':scope > .message__tool-output',
+  const outputSection = node.querySelector<HTMLElement>(
+    ':scope > .message__tool-section--output',
   );
   const outputContent = renderer.output;
 
-  if (outputContent !== undefined) {
+  if (outputSection && outputContent !== undefined) {
+    const outputContainer = outputSection.querySelector<HTMLElement>(
+      '.message__tool-output',
+    );
+
     if (!outputContainer) {
-      const outputLabel = node.querySelector<HTMLElement>(
-        ':scope > .message__tool-label:last-of-type',
-      );
-      if (outputLabel) {
-        const outputHtml = renderer.isOutputHtml
-          ? `<div class="message__tool-output message__tool-output--html">${outputContent}</div>`
-          : `<pre class="message__tool-output">${escapeHtml(outputContent)}</pre>`;
-        outputLabel.insertAdjacentHTML('afterend', outputHtml);
-      }
+      // Output section exists but is empty — first time result arrives.
+      const labelHtml = `<div class="message__tool-label">${escapeHtml(t('tool_output'))}</div>`;
+      const contentHtml = renderer.isOutputHtml
+        ? `<div class="message__tool-output message__tool-output--html">${outputContent}</div>`
+        : `<pre class="message__tool-output">${escapeHtml(outputContent)}</pre>`;
+      outputSection.innerHTML = labelHtml + contentHtml;
     } else {
       if (renderer.isOutputHtml) {
         outputContainer.innerHTML = outputContent;

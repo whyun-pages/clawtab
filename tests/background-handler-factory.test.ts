@@ -51,6 +51,7 @@ describe('background handler factory', () => {
       type: 'chat/stream:start',
       requestId: 'request-1',
       message: 'hello',
+      assistantMessageId: 'assistant-1',
     } satisfies ChatStreamClientMessage;
 
     const handler = getStreamMessageHandler(message);

@@ -1,12 +1,36 @@
 import { ToolName } from '../tools';
 import type { SearchResultDisplayMode } from '../../shared/types';
 import { getUserPreferences } from '../../shared/preferences';
+import { getLocale } from '../../shared/i18n';
+
+const LOCALE_LANGUAGE_NAME: Record<string, string> = {
+  zh_CN: '中文',
+  zh_TW: '中文',
+  en: 'English',
+  ja: '日本語',
+};
 
 export async function buildSystemPrompt(): Promise<string> {
   const preferences = await getUserPreferences();
+  const localeSetting = getLocale();
+
+  // Resolve 'auto' to the actual Chrome UI language (e.g. 'zh_CN', 'en').
+  let effectiveLocale: string;
+  if (localeSetting !== 'auto') {
+    effectiveLocale = localeSetting;
+  } else if (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage) {
+    effectiveLocale = chrome.i18n.getUILanguage().replace('-', '_');
+  } else {
+    effectiveLocale = 'zh_CN';
+  }
+  const languageName =
+    LOCALE_LANGUAGE_NAME[effectiveLocale] ??
+    LOCALE_LANGUAGE_NAME[effectiveLocale.split('_')[0]] ??
+    effectiveLocale;
 
   return [
     '你是 ClawTab，运行在 Chrome 插件环境中的浏览器自动化助手。',
+    `思考过程和回答均使用${languageName}。`,
     '所有关于标签页内容的回答，必须基于工具返回的真实数据，禁止编造、禁止仅凭标题或 URL 推断正文。',
     '',
     '可用工具：',

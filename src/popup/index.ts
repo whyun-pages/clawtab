@@ -8,7 +8,13 @@ import type {
 } from '../shared/types';
 import { initI18n, LOCALE_CHANGED_EVENT, t } from '../shared/i18n';
 import { applyI18nToDom } from '../shared/i18n-dom';
-import { getConfig, getHistory, setConfig, setHistory } from './chat-state';
+import {
+  getConfig,
+  getHistory,
+  setConfig,
+  setHistory,
+  appendToHistory,
+} from './chat-state';
 import { bindChatShortcut } from './chat-shortcut';
 import { bindCitationActions } from './citation-view';
 import { startChatStream, stopChatStream } from './chat-stream-controller';
@@ -38,8 +44,7 @@ function bindChatForm(): void {
 
     inputElement.value = '';
     startChatStream(message, {
-      setHistory,
-      renderHistory: render,
+      appendToHistory,
       renderRealtimeMessage,
       setSubmitting,
     });

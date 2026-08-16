@@ -5,6 +5,37 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-08-16
+
+### Changed
+
+- **Tool call DOM refactor**: input and output sections are now each wrapped in a dedicated container div (`message__tool-section--input` / `message__tool-section--output`), replacing positional `insertAdjacentHTML` calls. The patcher updates content by querying stable class names instead of calculating sibling offsets, eliminating a class of layout bugs caused by the thinking row shifting tool-call index positions.
+
+### Fixed
+
+- **Tool cards rendering outside the scroll container**: when the thinking row was present, tool cards were inserted at the wrong DOM position and ended up outside the messages scroll container, causing the scrollbar to appear shorter than the actual content height.
+- **Reasoning text leaking below tool cards**: the same positional offset caused reasoning text to render outside its `<details>` element and into the message body.
+
+[0.4.2]: https://github.com/whyun-pages/clawtab/compare/v0.4.1...v0.4.2
+
+## [0.4.1] - 2026-08-16
+
+### Added
+
+- **Click-to-preview images**: thumbnail images in assistant messages and tool output now expand on click rather than hover; clicking the same image again closes the preview, clicking a different thumbnail switches to it, and clicking outside or scrolling dismisses it.
+
+### Changed
+
+- **Search URL encoding**: search site tool now builds URLs via `URL` + `URLSearchParams` instead of manual `encodeURIComponent` concatenation, preventing double-encoding when the resulting URL is passed to the browser.
+
+### Fixed
+
+- **Tool output insertion order**: when a tool result arrived after initial render, the output block was being inserted between the "输入" label and the input content; it now correctly follows the input block.
+- **Missing output label on dynamic insert**: the "输出" label was omitted when the output section was injected into an existing tool-call node during streaming; it is now included.
+- **Streamed messages overwriting history**: earlier conversation turns are now preserved when new streaming messages arrive.
+
+[0.4.1]: https://github.com/whyun-pages/clawtab/compare/v0.4.0...v0.4.1
+
 ## [0.4.0] - 2026-08-02
 
 ### Added

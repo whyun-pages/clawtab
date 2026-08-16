@@ -10,7 +10,7 @@
 - 基于 AI SDK 的 OpenAI 兼容大模型接入，支持流式输出、思考过程与工具调用
 - 内置 `tabSnapshotListBasicTool` / `tabSnapshotGet` 两个工具，由 system prompt 强制按顺序调用
 - 多会话支持：会话与消息持久化到 IndexedDB，配置持久化到 `chrome.storage.local`
-- popup 支持 markdown 渲染、思考过程展开、工具调用渲染、消息复制、Enter / Shift+Enter 快捷键
+- popup 支持 markdown 渲染、统一的活动容器（思考过程 + 工具调用）、消息复制、流式传输中断、Enter / Shift+Enter 快捷键
 - Sentry Browser SDK 错误上报
 - `vitest` 单元测试 + `playwright` 端到端脚手架
 
