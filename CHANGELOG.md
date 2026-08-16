@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-08-16
+
+### Added
+
+- **Click-to-preview images**: thumbnail images in assistant messages and tool output now expand on click rather than hover; clicking the same image again closes the preview, clicking a different thumbnail switches to it, and clicking outside or scrolling dismisses it.
+
+### Changed
+
+- **Search URL encoding**: search site tool now builds URLs via `URL` + `URLSearchParams` instead of manual `encodeURIComponent` concatenation, preventing double-encoding when the resulting URL is passed to the browser.
+
+### Fixed
+
+- **Tool output insertion order**: when a tool result arrived after initial render, the output block was being inserted between the "输入" label and the input content; it now correctly follows the input block.
+- **Missing output label on dynamic insert**: the "输出" label was omitted when the output section was injected into an existing tool-call node during streaming; it is now included.
+- **Streamed messages overwriting history**: earlier conversation turns are now preserved when new streaming messages arrive.
+
+[0.4.1]: https://github.com/whyun-pages/clawtab/compare/v0.4.0...v0.4.1
+
 ## [0.4.0] - 2026-08-02
 
 ### Added
