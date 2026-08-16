@@ -30,12 +30,12 @@ describe('popup tool renderers', () => {
       output: { data: null },
     }).render();
 
-    expect(html).toContain('工具调用：获取标签快照');
-    expect(html).toContain('<div class="message__tool-label">输入</div>');
+    expect(html).toContain('获取标签快照');
+    expect(html).toContain('class="message__tool-section message__tool-section--input"');
     expect(html).toContain(
       '<pre class="message__tool-input">https://example.com/shop</pre>',
     );
-    expect(html).toContain('<div class="message__tool-label">输出</div>');
+    expect(html).toContain('class="message__tool-section message__tool-section--output"');
     expect(html).toContain(
       '<div class="message__tool-output message__tool-output--html">',
     );
@@ -52,10 +52,10 @@ describe('popup tool renderers', () => {
       output: { data: [] },
     }).render();
 
-    expect(html).toContain('工具调用：获取标签快照列表');
-    expect(html).toContain('<div class="message__tool-label">输入</div>');
+    expect(html).toContain('获取标签快照列表');
+    expect(html).toContain('class="message__tool-section message__tool-section--input"');
     expect(html).toContain('<pre class="message__tool-input"></pre>');
-    expect(html).toContain('<div class="message__tool-label">输出</div>');
+    expect(html).toContain('class="message__tool-section message__tool-section--output"');
     expect(html).toContain('<pre class="message__tool-output">');
     expect(html).not.toContain('&lt;script&gt;');
   });

@@ -65,17 +65,26 @@ export abstract class AbstractToolRenderer {
     const outputContent = this.output;
     const hasOutput = outputContent !== undefined;
 
-    const inputHtml = `<div class="message__tool-label">${escapeHtml(t('tool_input'))}</div><pre class="message__tool-input">${escapeHtml(this.input)}</pre>`;
-    const outputHtml = hasOutput
-      ? `<div class="message__tool-label">${escapeHtml(t('tool_output'))}</div>${
-          this.isOutputHtml
-            ? `<div class="message__tool-output message__tool-output--html">${outputContent}</div>`
-            : `<pre class="message__tool-output">${escapeHtml(outputContent)}</pre>`
-        }`
-      : '';
+    // Each section is wrapped in a dedicated container div so the patcher can
+    // update content by querying the wrapper rather than relying on sibling
+    // insertion position.
+    const inputSectionHtml =
+      `<div class="message__tool-section message__tool-section--input">` +
+      `<div class="message__tool-label">${escapeHtml(t('tool_input'))}</div>` +
+      `<pre class="message__tool-input">${escapeHtml(this.input)}</pre>` +
+      `</div>`;
+
+    const outputSectionHtml = hasOutput
+      ? `<div class="message__tool-section message__tool-section--output">` +
+        `<div class="message__tool-label">${escapeHtml(t('tool_output'))}</div>` +
+        (this.isOutputHtml
+          ? `<div class="message__tool-output message__tool-output--html">${outputContent}</div>`
+          : `<pre class="message__tool-output">${escapeHtml(outputContent)}</pre>`) +
+        `</div>`
+      : `<div class="message__tool-section message__tool-section--output"></div>`;
 
     return `<details class="message__tool-call" data-tool-call-id="${escapeHtml(
       this.toolStreamDelta.toolCallId,
-    )}"><summary>${summaryContent}</summary>${inputHtml}${outputHtml}</details>`;
+    )}"><summary>${summaryContent}</summary>${inputSectionHtml}${outputSectionHtml}</details>`;
   }
 }

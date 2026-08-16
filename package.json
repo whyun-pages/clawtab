@@ -1,6 +1,6 @@
 {
   "name": "clawtab",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "type": "module",
   "description": "ClawTab Chrome extension powered by an OpenClaw-style connector.",
